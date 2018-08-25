@@ -12,6 +12,7 @@ class Application(ttk.Frame):
         app.grid(column=1, row=1)
         root.resizable(True, True)
         root.geometry("800x480")
+        root["bg"] = 'black'
         #root.attributes("-fullscreen", True)
         root.bind("<F11>", app.toggleFullScreen)
         root.mainloop()
@@ -26,24 +27,31 @@ class Application(ttk.Frame):
         
     def create_variables(self):
         self.fullscreen = True
-        self.statusVar = StringVar(self, value="")
+        self.statusVar = StringVar(self, value="OFF")
         self.onoff = StringVar(self, value="ON")
+        self.kart = Kart()
         
     def toggleFullScreen(self, event=None):
         self.fullscreen = not self.fullscreen
         self.root.attributes("-fullscreen", self.fullscreen)
         
     def create_widgets(self):
-        self.but1 = Button(self, textvariable=self.onoff, height=24, width=30, command=self.prompt)
-        self.but2 = Button(self, text="Forward", height=8, width=30, command=lambda : self.statusVar.set("Forward"))
-        self.but3 = Button(self, text="NITROUS", height=8, width=30, command=lambda : self.statusVar.set("BOOST"))
-        self.status = Label(self, width=90, textvariable=self.statusVar, relief='groove')
+        self.onButton = Button(self, textvariable=self.onoff, height=24, width=30, command=self.prompt)
+        self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.statusVar.set("Forward"))
+        self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.statusVar.set("Neutral"))
+        self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.statusVar.set("Reverse"))
+        self.batteryToggleButton = Button(self, text="Battery Pack", height=8, width=30)
+        self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
+        self.speedDisplay = Label(self, width=30, height=8, relief='groove', text='0')
         
     def grid_widgets(self):
         self.status.grid(column=0, row=0, columnspan=3, sticky='NEWS')
-        self.but1.grid(column=0, row=1, rowspan=3, sticky='N')
-        self.but2.grid(column=1, row=1, sticky='N')
-        self.but3.grid(column=2, row=1, sticky='N')
+        self.speedDisplay.grid(column=2, row=1, sticky='NWES', rowspan=2)
+        self.onButton.grid(column=0, row=1, rowspan=3, sticky='NEWS')
+        self.forward.grid(column=1, row=1, sticky='NWES')
+        self.neutral.grid(column=1, row=2, sticky='NWES')
+        self.reverse.grid(column=1, row=3, sticky='NWES')
+        self.batteryToggleButton.grid(column=2, row=3, sticky='NWES')
         for i in range(3):
             self.root.grid_columnconfigure(i, weight=1)
             self.root.grid_rowconfigure(i, weight=1)
@@ -53,10 +61,31 @@ class Application(ttk.Frame):
         if onoff == "OFF" or mb.askyesno(message='Check your surroundings.\nReady to go?', master=self.root):
             if(onoff == 'ON'):
                 self.onoff.set("OFF")
+                self.kart.on(self)
             else:
                 self.onoff.set("ON")
+                self.kart.off(self)
         else:
             pass
-        
+
+    def disableButton(self, button):
+        button.config(state=DISABLED)
+    def enableButton(self, button):
+        button.config(state=NORMAL)
+
+class Kart:
+
+    def on(self, app):
+        app.statusVar.set("ON")
+        root = app.root
+        app.disableButton(app.onButton)
+        root.after(1000, lambda : app.enableButton(app.forward))
+        root.after(1000, lambda : app.enableButton(app.reverse))
+        root.after(1000, lambda : app.enableButton(app.onButton))
+    def off(self, app):
+        app.statusVar.set("OFF")
+        app.disableButton(app.forward)
+        app.disableButton(app.reverse)
+
 if __name__ == '__main__':
     Application.main()
