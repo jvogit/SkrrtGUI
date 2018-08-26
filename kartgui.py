@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox as mb
+import threading
+import time
 
 class Application(ttk.Frame):
     
@@ -15,6 +17,7 @@ class Application(ttk.Frame):
         root["bg"] = 'black'
         #root.attributes("-fullscreen", True)
         root.bind("<F11>", app.toggleFullScreen)
+        root.protocol("WM_DELETE_WINDOW", app.on_closing)
         root.mainloop()
         
     def __init__(self, root, **args):
@@ -22,19 +25,26 @@ class Application(ttk.Frame):
         print("Initialized application")
         self.root = root
         self.create_variables()
+        self.create_threads()
         self.create_widgets()
         self.grid_widgets()
+        self.speedometerThread.start()
         
     def create_variables(self):
         self.fullscreen = True
         self.statusVar = StringVar(self, value="OFF")
         self.onoff = StringVar(self, value="ON")
+        self.speedVar = StringVar(self, value="0\nmph")
         self.kart = Kart()
         
     def toggleFullScreen(self, event=None):
         self.fullscreen = not self.fullscreen
         self.root.attributes("-fullscreen", self.fullscreen)
-        
+
+    def create_threads(self):
+        self.threadingEvent = threading.Event()
+        self.speedometerThread = SpeedometerThread(self)
+    
     def create_widgets(self):
         self.onButton = Button(self, textvariable=self.onoff, height=24, width=30, command=self.prompt)
         self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
@@ -42,7 +52,7 @@ class Application(ttk.Frame):
         self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
         self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=8, width=30)
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
-        self.speedDisplay = Label(self, width=30, height=15, relief='groove', text='0\nmph')
+        self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
         self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} Charging')
         
     def grid_widgets(self):
@@ -67,6 +77,11 @@ class Application(ttk.Frame):
             else:
                 self.onoff.set("ON")
                 self.kart.off(self)
+
+    def on_closing(self):
+        print("Application terminated")
+        self.root.destroy()
+        self.threadingEvent.set()
 
     @staticmethod
     def disableButton(*buttons):
@@ -115,6 +130,26 @@ class Kart:
                                                               app.statusVar.set("Reverse")))
         
         pass
+
+class SpeedometerThread(threading.Thread):
+    def __init__(self, app):
+        threading.Thread.__init__(self)
+        self.app = app
+        self.name = "Speedometer"
+        self.counter = 0;
+        self.exitFlag = 0;
+
+    def run(self):
+        while True and self.exitFlag == 0:
+            if self.counter < 200:
+                self.counter += 1
+                self.app.speedVar.set(str(self.counter)+"\nmph")
+                #time.sleep(1)
+                if self.app.threadingEvent.wait(timeout=1):
+                    break
+            else:
+                print("Max speed!")
+        print(self.name + " thread exited gracefully!")
 
 class Util:
     
