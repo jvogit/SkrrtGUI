@@ -37,16 +37,18 @@ class Application(ttk.Frame):
         
     def create_widgets(self):
         self.onButton = Button(self, textvariable=self.onoff, height=24, width=30, command=self.prompt)
-        self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.statusVar.set("Forward"))
-        self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.statusVar.set("Neutral"))
-        self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.statusVar.set("Reverse"))
-        self.batteryToggleButton = Button(self, text="Battery Pack", height=8, width=30)
+        self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
+        self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.kart.neutral(self))
+        self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
+        self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=8, width=30)
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
-        self.speedDisplay = Label(self, width=30, height=8, relief='groove', text='0')
+        self.speedDisplay = Label(self, width=30, height=15, relief='groove', text='0\nmph')
+        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} Charging')
         
     def grid_widgets(self):
         self.status.grid(column=0, row=0, columnspan=3, sticky='NEWS')
-        self.speedDisplay.grid(column=2, row=1, sticky='NWES', rowspan=2)
+        self.speedDisplay.grid(column=2, row=1, sticky='NEW', rowspan=2)
+        self.batteryChargingDisplay.grid(column=2, row=2, sticky='EWS')
         self.onButton.grid(column=0, row=1, rowspan=3, sticky='NEWS')
         self.forward.grid(column=1, row=1, sticky='NWES')
         self.neutral.grid(column=1, row=2, sticky='NWES')
@@ -65,27 +67,61 @@ class Application(ttk.Frame):
             else:
                 self.onoff.set("ON")
                 self.kart.off(self)
-        else:
-            pass
 
-    def disableButton(self, button):
-        button.config(state=DISABLED)
-    def enableButton(self, button):
-        button.config(state=NORMAL)
+    @staticmethod
+    def disableButton(*buttons):
+        for button in buttons:
+            button.config(state=DISABLED)
+
+    @staticmethod
+    def enableButton(*buttons):
+        for button in buttons:
+            button.config(state=NORMAL)
 
 class Kart:
 
+    def __init__(self):
+        self.forwardBool = False;
+        self.neutralBool = False;
+        self.reverseBool = False;
+    
     def on(self, app):
-        app.statusVar.set("ON")
+        app.statusVar.set("Turning on . . .")
         root = app.root
-        app.disableButton(app.onButton)
-        root.after(1000, lambda : app.enableButton(app.forward))
-        root.after(1000, lambda : app.enableButton(app.reverse))
-        root.after(1000, lambda : app.enableButton(app.onButton))
+        Application.disableButton(app.onButton)
+        root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton), \
+                                                          app.statusVar.set("On"), \
+                                                          app.neutral.invoke()))
     def off(self, app):
         app.statusVar.set("OFF")
-        app.disableButton(app.forward)
-        app.disableButton(app.reverse)
+        Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton)
+        app.root.after(1000, lambda : Application.enableButton(app.onButton))
+
+    def forward(self, app):
+        Application.disableButton(app.forward, app.reverse, app.onButton)
+        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton), \
+                                                              app.statusVar.set("Forward")))
+        pass
+
+    def neutral(self, app):
+        Application.disableButton(app.neutral, app.onButton)
+        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.forward, app.reverse), \
+                                                              app.statusVar.set("Neutral")))
+        pass
+
+    def reverse(self, app):
+        Application.disableButton(app.reverse, app.forward, app.onButton)
+        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.neutral), \
+                                                              app.statusVar.set("Reverse")))
+        
+        pass
+
+class Util:
+    
+    @staticmethod
+    def batch_execute_func(*funcs):
+        for f in funcs:
+            f
 
 if __name__ == '__main__':
     Application.main()
