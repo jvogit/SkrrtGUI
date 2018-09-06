@@ -1,12 +1,6 @@
-try:
-    from tkinter import Text,Frame,Tk,Button,Label,Entry
-    from tkinter.constants import NORMAL,DISABLED,END
-except ImportError:
-    from Tkinter import Text,Frame,Tk,Button,Label,Entry
-    from Tkinter.constants import NORMAL,DISABLED,END
 import RPi.GPIO as GPIO
 import time
-
+from tkinter import *
 """
 gpio pins 36-40 even, 29-37 odd
 29 - power/keyswitch
@@ -28,8 +22,8 @@ class CartGUI:
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         GPIO.setup(pins, GPIO.OUT)
-        GPIO.setup(hall, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-        GPIO.add_event_detect(hall,GPIO.FALLING,callback=get_pulse)
+        #GPIO.setup(hall, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        #GPIO.add_event_detect(hall,GPIO.FALLING,callback=get_pulse)
         
         frame = Frame(self.window, height=220, width=600, bg="#d1d1d1")
         frame.grid(row=1, column=0, sticky="NW")
@@ -43,7 +37,7 @@ class CartGUI:
         
         self.text = Text(infoFrame, state=NORMAL, font=('Courier', 15),
                             height=1, width=35)
-        self.text.insert(1.0, 'RED HYBRID by Class of 2018')
+        self.text.insert(1.0, 'RED HYBRID by Class of 2018 LOOOOOOOOOL')
         self.text.config(state=DISABLED)
         self.text.grid(row=0, column=1, columnspan=3, padx=20, pady=(10,0))
         
@@ -52,7 +46,7 @@ class CartGUI:
         
         self.batteryLevel = Entry(infoFrame, state=NORMAL, font=('Courier', 32), width=4)
         self.batteryLevel.grid(row=1, column=1, padx=(20,0), pady=(10,0), sticky="NW")
-        self.batteryLevel.insert(0, "WIP")
+        self.batteryLevel.insert(0, "no work")
         self.batteryLevel.config(state=DISABLED)
         
         self.currentPowerLabel = Label(infoFrame, text="Power\nsource", font=("Courier", 16, "bold"))
@@ -88,7 +82,7 @@ class CartGUI:
         self.forward.grid(row=0, column=1, padx=10, pady=(10,10))
         
         self.gas = Button(frame, state=DISABLED, bg="silver",
-                            text="WIP", font=('Courier', 19),
+                            text="DOESNT\nWORK\nlol", font=('Courier', 19),
                             height=6, width=7)
         self.gas.grid(row=0, rowspan=2, column=2, padx=10, pady=(9,10))
         
@@ -108,7 +102,7 @@ class CartGUI:
         GPIO.output(29, GPIO.HIGH)
         time.sleep(1.5)
         GPIO.output(31, GPIO.HIGH)
-        self.speed_output()
+        #self.speed_output()
 
     def off_car(self):
         global pins
@@ -123,7 +117,7 @@ class CartGUI:
         self.start.config(state=NORMAL, bg="white", fg="black")
         self.forward.config(state=DISABLED, bg="silver")
         self.reverse.config(state=DISABLED, bg="silver")
-        self.speed_output()
+        #self.speed_output()
 
     def forward_car(self):
         self.start_car()
@@ -136,7 +130,7 @@ class CartGUI:
         self.forward.config(state=DISABLED, bg="silver")
         self.reverse.config(state=DISABLED, bg="silver")
         self.start.config(state=NORMAL, bg="white", fg="black")
-        self.speed_output()
+        #self.speed_output()
 
     def reverse_car(self):
         self.start_car()
@@ -149,7 +143,7 @@ class CartGUI:
         self.forward.config(state=DISABLED, bg="silver")
         self.reverse.config(state=DISABLED, bg="silver")
         self.start.config(state=NORMAL, bg="white", fg="black")
-        self.speed_output()
+        #self.speed_output()
 
     def gas(self):
         self.off_car()
@@ -175,7 +169,7 @@ class CartGUI:
         self.reverse.config(state=NORMAL, bg="white", fg="black")
         self.gas.config(state=NORMAL, bg="white", fg="black")
         
-    def speed_output(self):
+    '''def speed_output(self):
         if GPIO.input(35) ^ GPIO.input(37):
             self.speed.config(state=NORMAL)
             self.speed.delete(0, END)
@@ -184,7 +178,7 @@ class CartGUI:
         else:
             self.speed.delete(0, END)
             self.speed.insert(0, "OFF")
-            self.speed.after(200, self.speed_output)
+            self.speed.after(200, self.speed_output)'''
 
 pulse = 0
 distance = 0
@@ -197,7 +191,7 @@ elapse = 0.00
 addme = 0
 start = time.time()
 
-def get_pulse(n):
+'''def get_pulse(n):
     global elapse,distance,start,pulse,speed,rpm,multiplier
     cycle = 0
     pulse+=1
@@ -216,7 +210,7 @@ def get_pulse(n):
     start = time.time()
 
 def get_speed():
-    return speed
+    return speed'''
 
 def clean():
     GPIO.cleanup()

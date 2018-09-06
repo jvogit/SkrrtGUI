@@ -80,6 +80,7 @@ class Application(ttk.Frame):
 
     def on_closing(self):
         print("Application terminated")
+        self.kart.off(self)
         self.root.destroy()
         self.threadingEvent.set()
 
@@ -137,18 +138,17 @@ class SpeedometerThread(threading.Thread):
         self.app = app
         self.name = "Speedometer"
         self.counter = 0;
-        self.exitFlag = 0;
 
     def run(self):
-        while True and self.exitFlag == 0:
+        while True:
             if self.counter < 200:
                 self.counter += 1
                 self.app.speedVar.set(str(self.counter)+"\nmph")
                 #time.sleep(1)
-                if self.app.threadingEvent.wait(timeout=1):
-                    break
             else:
                 print("Max speed!")
+            if self.app.threadingEvent.wait(timeout=1):
+                    break
         print(self.name + " thread exited gracefully!")
 
 class Util:
