@@ -13,7 +13,7 @@ gpio pins 36-40 even, 29-37 odd
 class CartGUI:
     def __init__(self, window):
         self.window = window
-        self.window.geometry("600x400")
+        self.window.geometry("800x480")
         self.window.resizable(width=False, height=False)
         self.window.title("RED HYBRID SUPER CAR")
         

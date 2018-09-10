@@ -3,12 +3,15 @@ from tkinter import ttk
 from tkinter import messagebox as mb
 import threading
 import time
-
+import RPi.GPIO as GPIO
 class Application(ttk.Frame):
+
     
     @classmethod
     def main(cls):
         NoDefaultRoot()
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
         root = Tk()
         app = cls(root)
         app.grid(column=1, row=1)
@@ -96,7 +99,10 @@ class Application(ttk.Frame):
 
 class Kart:
 
+    pins = [29, 31, 35, 37]
+    
     def __init__(self):
+        GPIO.setup(self.pins, GPIO.OUT)
         self.forwardBool = False;
         self.neutralBool = False;
         self.reverseBool = False;
@@ -106,31 +112,62 @@ class Kart:
         root = app.root
         Application.disableButton(app.onButton)
         root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton), \
-                                                          app.statusVar.set("On"), \
-                                                          app.neutral.invoke()))
+                                                            app.statusVar.set("On"), \
+                                                            app.neutral.invoke(), \
+                                                            self.on_pin_seq()))
     def off(self, app):
         app.statusVar.set("OFF")
         Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton)
-        app.root.after(1000, lambda : Application.enableButton(app.onButton))
+        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton), \
+                                                              self.off_pin_seq()))
 
     def forward(self, app):
         Application.disableButton(app.forward, app.reverse, app.onButton)
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton), \
-                                                              app.statusVar.set("Forward")))
+                                                              app.statusVar.set("Forward"), \
+                                                              self.forward_pin_seq()))
         pass
 
     def neutral(self, app):
         Application.disableButton(app.neutral, app.onButton)
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.forward, app.reverse), \
-                                                              app.statusVar.set("Neutral")))
+                                                              app.statusVar.set("Neutral"), \
+                                                              self.neutral_pin_seq()))
         pass
 
     def reverse(self, app):
         Application.disableButton(app.reverse, app.forward, app.onButton)
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.neutral), \
-                                                              app.statusVar.set("Reverse")))
+                                                              app.statusVar.set("Reverse"), \
+                                                              self.off_pin_seq()))
         
         pass
+
+    def on_pin_seq(self):
+        print("Pin KEY")
+        GPIO.output(29, GPIO.HIGH)
+        time.sleep(0.5)
+        print("ON ENABLE")
+        GPIO.output(31, GPIO.HIGH)
+
+    def off_pin_seq(self):
+        for pin in self.pins:
+            GPIO.output(pin, GPIO.LOW)
+            time.sleep(0.05)
+
+    def neutral_pin_seq(self):
+        GPIO.output(37, GPIO.LOW)
+        GPIO.output(35, GPIO.LOW)
+
+    def forward_pin_seq(self):
+        self.neutral_pin_seq()
+        time.sleep(1)
+        GPIO.output(37, GPIO.HIGH)
+
+    def reverse_pin_seq(self):
+        self.neutral_pin_seq()
+        time.sleep(1)
+        GPIO.output(35, GPIO.HIGH)
 
 class SpeedometerThread(threading.Thread):
     def __init__(self, app):
