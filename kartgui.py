@@ -53,10 +53,11 @@ class Application(ttk.Frame):
         self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
         self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.kart.neutral(self))
         self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
-        self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=8, width=30)
+        self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=4, width=30)
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
-        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} Charging')
+        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} {C|NC} {1}% {2}V\nBattery Pack {3} {C|NC} {4}% {5}V')
+        self.gasChange = Button(self, text="Gas", height=4, width=30)
         
     def grid_widgets(self):
         self.status.grid(column=0, row=0, columnspan=3, sticky='NEWS')
@@ -66,7 +67,8 @@ class Application(ttk.Frame):
         self.forward.grid(column=1, row=1, sticky='NWES')
         self.neutral.grid(column=1, row=2, sticky='NWES')
         self.reverse.grid(column=1, row=3, sticky='NWES')
-        self.batteryToggleButton.grid(column=2, row=3, sticky='NWES')
+        self.batteryToggleButton.grid(column=2, row=3, sticky='NWE')
+        self.gasChange.grid(column=2, row=3, sticky='EWS')
         for i in range(3):
             self.root.grid_columnconfigure(i, weight=1)
             self.root.grid_rowconfigure(i, weight=1)
@@ -139,7 +141,7 @@ class Kart:
         Application.disableButton(app.reverse, app.forward, app.onButton)
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.neutral), \
                                                               app.statusVar.set("Reverse"), \
-                                                              self.off_pin_seq()))
+                                                              self.reverse_pin_seq()))
         
         pass
 
@@ -169,6 +171,9 @@ class Kart:
         time.sleep(1)
         GPIO.output(35, GPIO.HIGH)
 
+    def gas_pin_seq(self):
+        pass
+
 class SpeedometerThread(threading.Thread):
     def __init__(self, app):
         threading.Thread.__init__(self)
@@ -177,7 +182,7 @@ class SpeedometerThread(threading.Thread):
         self.counter = 0;
 
     def run(self):
-        while True:
+        '''while True:
             if self.counter < 200:
                 self.counter += 1
                 self.app.speedVar.set(str(self.counter)+"\nmph")
@@ -185,8 +190,26 @@ class SpeedometerThread(threading.Thread):
             else:
                 print("Max speed!")
             if self.app.threadingEvent.wait(timeout=1):
-                    break
+                    break'''
+        self.demo()
         print(self.name + " thread exited gracefully!")
+
+    def demo(self):
+       while True:
+            if self.counter < 200:
+                self.counter += 1
+                self.app.speedVar.set(str(self.counter)+"\nmph")
+                #time.sleep(1)
+            else:
+                print("Max speed!")
+
+            timeout = 0.1
+            if(self.counter > 60):
+                timeout = 1
+            
+            if self.app.threadingEvent.wait(timeout=timeout):
+                    break
+            
 
 class Util:
     
