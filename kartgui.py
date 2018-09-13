@@ -57,7 +57,7 @@ class Application(ttk.Frame):
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
         self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} {C|NC} {1}% {2}V\nBattery Pack {3} {C|NC} {4}% {5}V')
-        self.gasChange = Button(self, text="Gas", height=4, width=30)
+        self.gasChange = Button(self, text="Gas", height=4, width=30, command=lambda : self.kart.gas(self))
         
     def grid_widgets(self):
         self.status.grid(column=0, row=0, columnspan=3, sticky='NEWS')
@@ -102,6 +102,9 @@ class Application(ttk.Frame):
 class Kart:
 
     pins = [29, 31, 35, 37]
+    DEFAULT_PIN_DELAY = 0.05
+    FULL_OFF_DELAY = int(len(pins) * 0.05) + 1
+    SAFETY_OFF_DELAY = FULL_OFF_DELAY + 3
     
     def __init__(self):
         GPIO.setup(self.pins, GPIO.OUT)
@@ -145,6 +148,14 @@ class Kart:
         
         pass
 
+    def gas(self, app):
+        Application.disableButton(app.gasChange)
+        app.onoff.set('OFF')
+        app.onButton.invoke()
+        app.root.after(self.FULL_OFF_DELAY * 1000, lambda : Util.batch_execute_func(Application.disableButton(app.onButton)))
+        app.root.after(self.SAFETY_OFF_DELAY * 1000, lambda : Util.batch_execute_func(Application.enableButton(app.gasChange, app.onButton),
+                                                              print('Gas now changeg!')))
+
     def on_pin_seq(self):
         print("Pin KEY")
         GPIO.output(29, GPIO.HIGH)
@@ -155,7 +166,7 @@ class Kart:
     def off_pin_seq(self):
         for pin in self.pins:
             GPIO.output(pin, GPIO.LOW)
-            time.sleep(0.05)
+            time.sleep(self.DEFAULT_PIN_DELAY)
 
     def neutral_pin_seq(self):
         GPIO.output(37, GPIO.LOW)
@@ -182,15 +193,6 @@ class SpeedometerThread(threading.Thread):
         self.counter = 0;
 
     def run(self):
-        '''while True:
-            if self.counter < 200:
-                self.counter += 1
-                self.app.speedVar.set(str(self.counter)+"\nmph")
-                #time.sleep(1)
-            else:
-                print("Max speed!")
-            if self.app.threadingEvent.wait(timeout=1):
-                    break'''
         self.demo()
         print(self.name + " thread exited gracefully!")
 
