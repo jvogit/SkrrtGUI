@@ -121,9 +121,10 @@ class Kart:
                                                             app.neutral.invoke(), \
                                                             self.on_pin_seq()))
     def off(self, app):
-        app.statusVar.set("OFF")
+        app.statusVar.set("Turning off. . .")
         Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton, app.gasChange)
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.gasChange), \
+                                                              app.statusVar.set("OFF"), \
                                                               self.off_pin_seq()))
 
     def forward(self, app):
