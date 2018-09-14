@@ -56,7 +56,7 @@ class Application(ttk.Frame):
         self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=4, width=30)
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
-        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} {C|NC} {1}% {2}V\nBattery Pack {3} {C|NC} {4}% {5}V')
+        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} {1}% {2}V\nBattery Pack {3} {4}% {5}V ⚡')
         self.gasChange = Button(self, text="Gas", height=4, width=30, command=lambda : self.kart.gas(self))
         
     def grid_widgets(self):
@@ -132,23 +132,19 @@ class Kart:
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton, app.gasChange), \
                                                               app.statusVar.set("Forward"), \
                                                               self.forward_pin_seq()))
-        pass
-
+        
     def neutral(self, app):
         Application.disableButton(app.neutral, app.onButton, app.gasChange)
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.forward, app.reverse, app.gasChange), \
                                                               app.statusVar.set("Neutral"), \
                                                               self.neutral_pin_seq()))
-        pass
-
+        
     def reverse(self, app):
         Application.disableButton(app.reverse, app.forward, app.onButton, app.gasChange)
         app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.neutral, app.gasChange), \
                                                               app.statusVar.set("Reverse"), \
                                                               self.reverse_pin_seq()))
         
-        pass
-
     def gas(self, app):
         Application.disableButton(app.gasChange)
         app.onoff.set('OFF')
@@ -213,6 +209,8 @@ class SpeedometerThread(threading.Thread):
             if self.app.threadingEvent.wait(timeout=timeout):
                     break
             
+class Speedometer:
+    pass
 
 class Util:
     
