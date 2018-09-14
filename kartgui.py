@@ -183,14 +183,19 @@ class Kart:
         pass
 
 class SpeedometerThread(threading.Thread):
+
+    watchdog_time_since = 0
+    
     def __init__(self, app):
         threading.Thread.__init__(self)
         self.app = app
         self.name = "Speedometer"
         self.counter = 0;
-
+        self.speedometer = Speedometer(self, 2)
+        self.speedometer.setup()
+        
     def run(self):
-        self.demo()
+        self.speedometerUpdateLoop()
         print(self.name + " thread exited gracefully!")
 
     def demo(self):
@@ -208,9 +213,55 @@ class SpeedometerThread(threading.Thread):
             
             if self.app.threadingEvent.wait(timeout=timeout):
                     break
+
+    def speedometerUpdateLoop(self):
+        while True:
+            if time.time() - self.watchdog_time_since > 5:
+                self.speedometer.reset()
+            speed = self.speedometer.getSpeed()
+            self.app.speedVar.set(str(speed) + "\nkm/hr")
+            if self.app.threadingEvent.wait(timeout=1/2000):
+               break;
+                
+
+    def notifyWatchdog(self):
+        watchdog_time_since = time.time()
             
 class Speedometer:
-    pass
+
+    pin = 0
+    circumference = 0
+    start_time = 0
+    speed = 0
+    
+    def __init__(self, watchdogThread, circumference, pin=18):
+       self.pin = pin
+       self.watchdogThread = watchdogThread
+       self.circumference = circumference
+
+    def setup(self):
+        GPIO.setup(self.pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
+        
+    def calc_speed(self):
+        watchdogThread.notifyWatchdog()
+        if(start == 0):
+            start = time.time()
+            return None
+        elapse = time.time() - self.start
+        rpm = 1/elapse * 60
+        dist_km = circumference/100000
+        km_per_sec = dist_km / elapse
+        km_per_hour = km_per_sec * 3600
+        self.speed = km_per_hour
+
+    def getSpeed(self):
+        return self.speed
+
+    def reset(self):
+        start_time = 0
+        speed = 0
+        
 
 class Util:
     
