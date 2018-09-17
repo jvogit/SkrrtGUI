@@ -120,8 +120,8 @@ class Kart:
         Application.disableButton(app.onButton, app.gasChange)
         root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton, app.gasChange), \
                                                             app.statusVar.set("On"), \
-                                                            app.neutral.invoke(), \
-                                                            self.on_pin_seq()))
+                                                            app.neutral.invoke()\
+                                                          ))
     def off(self, app):
         app.statusVar.set("Turning off. . .")
         Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton, app.gasChange)
@@ -173,12 +173,12 @@ class Kart:
         self.on_pin_seq()
 
     def forward_pin_seq(self):
-        self.on_pin_seq()
+        self.neutral_pin_seq()
         time.sleep(1)
         GPIO.output(37, GPIO.HIGH)
 
     def reverse_pin_seq(self):
-        self.on_pin_seq()
+        self.neutral_pin_seq()
         time.sleep(1)
         GPIO.output(35, GPIO.HIGH)
 
@@ -222,7 +222,7 @@ class SpeedometerThread(threading.Thread):
             if time.time() - self.watchdog_time_since > 5:
                 self.speedometer.reset()
             speed = self.speedometer.getSpeed()
-            self.app.speedVar.set(str(speed) + "\nkm/hr")
+            self.app.speedVar.set('{0:.0f}'.format(speed) + "\nkm/hr")
             if self.app.threadingEvent.wait(timeout=1/2000):
                break;
                 
@@ -248,9 +248,7 @@ class Speedometer:
         GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
         
     def calc_speed(self, val):
-        print('ran')
         self.watchdogThread.notifyWatchdog()
-        print('hit')
         if(self.start_time == 0):
             self.start_time = time.time()
             return None
@@ -261,13 +259,12 @@ class Speedometer:
         km_per_hour = km_per_sec * 3600
         self.speed = km_per_hour
         self.start_time = time.time()
-        print('self.speed')
+        print(self.speed + " Speedometer read")
 
     def getSpeed(self):
         return self.speed
 
     def reset(self):
-        print('reset')
         self.start_time = 0
         self.speed = 0
         
