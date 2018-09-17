@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox as mb
 import threading
 import time
+import math
 import RPi.GPIO as GPIO
 class Application(ttk.Frame):
 
@@ -88,6 +89,7 @@ class Application(ttk.Frame):
         self.kart.off(self)
         self.root.destroy()
         self.threadingEvent.set()
+        GPIO.cleanup()
 
     @staticmethod
     def disableButton(*buttons):
@@ -154,9 +156,11 @@ class Kart:
                                                               print('Gas now changeg!')))
 
     def on_pin_seq(self):
+        self.off_pin_seq()
+        time.sleep(1)
         print("Pin KEY")
         GPIO.output(29, GPIO.HIGH)
-        time.sleep(0.5)
+        time.sleep(1)
         print("ON ENABLE")
         GPIO.output(31, GPIO.HIGH)
 
@@ -166,16 +170,15 @@ class Kart:
             time.sleep(self.DEFAULT_PIN_DELAY)
 
     def neutral_pin_seq(self):
-        GPIO.output(37, GPIO.LOW)
-        GPIO.output(35, GPIO.LOW)
+        self.on_pin_seq()
 
     def forward_pin_seq(self):
-        self.neutral_pin_seq()
+        self.on_pin_seq()
         time.sleep(1)
         GPIO.output(37, GPIO.HIGH)
 
     def reverse_pin_seq(self):
-        self.neutral_pin_seq()
+        self.on_pin_seq()
         time.sleep(1)
         GPIO.output(35, GPIO.HIGH)
 
@@ -191,7 +194,7 @@ class SpeedometerThread(threading.Thread):
         self.app = app
         self.name = "Speedometer"
         self.counter = 0;
-        self.speedometer = Speedometer(self, 2)
+        self.speedometer = Speedometer(self, math.pi*25)
         self.speedometer.setup()
         
     def run(self):
@@ -225,7 +228,7 @@ class SpeedometerThread(threading.Thread):
                 
 
     def notifyWatchdog(self):
-        watchdog_time_since = time.time()
+        self.watchdog_time_since = time.time()
             
 class Speedometer:
 
@@ -240,27 +243,33 @@ class Speedometer:
        self.circumference = circumference
 
     def setup(self):
+        print('setup')
         GPIO.setup(self.pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
         
-    def calc_speed(self):
-        watchdogThread.notifyWatchdog()
-        if(start == 0):
-            start = time.time()
+    def calc_speed(self, val):
+        print('ran')
+        self.watchdogThread.notifyWatchdog()
+        print('hit')
+        if(self.start_time == 0):
+            self.start_time = time.time()
             return None
-        elapse = time.time() - self.start
+        elapse = time.time() - self.start_time
         rpm = 1/elapse * 60
-        dist_km = circumference/100000
+        dist_km = self.circumference/100000
         km_per_sec = dist_km / elapse
         km_per_hour = km_per_sec * 3600
         self.speed = km_per_hour
+        self.start_time = time.time()
+        print('self.speed')
 
     def getSpeed(self):
         return self.speed
 
     def reset(self):
-        start_time = 0
-        speed = 0
+        print('reset')
+        self.start_time = 0
+        self.speed = 0
         
 
 class Util:
