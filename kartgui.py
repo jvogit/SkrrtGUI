@@ -118,32 +118,32 @@ class Kart:
         app.statusVar.set("Turning on . . .")
         root = app.root
         Application.disableButton(app.onButton, app.gasChange)
-        root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton, app.gasChange), \
+        root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton, app.gasChange), \
                                                             app.statusVar.set("On"), \
                                                             app.neutral.invoke()\
                                                           ))
     def off(self, app):
         app.statusVar.set("Turning off. . .")
         Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton, app.gasChange)
-        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.gasChange), \
+        app.root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.gasChange), \
                                                               app.statusVar.set("OFF"), \
                                                               self.off_pin_seq()))
 
     def forward(self, app):
         Application.disableButton(app.forward, app.reverse, app.onButton, app.gasChange)
-        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton, app.gasChange), \
+        app.root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton, app.gasChange), \
                                                               app.statusVar.set("Forward"), \
                                                               self.forward_pin_seq()))
         
     def neutral(self, app):
         Application.disableButton(app.neutral, app.onButton, app.gasChange)
-        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.forward, app.reverse, app.gasChange), \
+        app.root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.forward, app.reverse, app.gasChange), \
                                                               app.statusVar.set("Neutral"), \
                                                               self.neutral_pin_seq()))
         
     def reverse(self, app):
         Application.disableButton(app.reverse, app.forward, app.onButton, app.gasChange)
-        app.root.after(1000, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.neutral, app.gasChange), \
+        app.root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.neutral, app.gasChange), \
                                                               app.statusVar.set("Reverse"), \
                                                               self.reverse_pin_seq()))
         
