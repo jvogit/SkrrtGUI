@@ -208,11 +208,11 @@ class SpeedometerThread(threading.Thread):
                 self.app.speedVar.set(str(self.counter)+"\nmph")
                 #time.sleep(1)
             else:
-                print("Max speed!")
+                self.counter = 0
 
             timeout = 0.1
             if(self.counter > 60):
-                timeout = 1
+                timeout = 0.5
             
             if self.app.threadingEvent.wait(timeout=timeout):
                     break
