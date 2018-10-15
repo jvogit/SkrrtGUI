@@ -1,10 +1,12 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox as mb
+from Speedometer import Speedometer
 import threading
 import time
 import math
 import RPi.GPIO as GPIO
+import KartSerialConnector as serial
 class Application(ttk.Frame):
 
     
@@ -33,6 +35,7 @@ class Application(ttk.Frame):
         self.create_widgets()
         self.grid_widgets()
         self.speedometerThread.start()
+        self.batteryVoltageThread.start()
         
     def create_variables(self):
         self.fullscreen = True
@@ -48,6 +51,7 @@ class Application(ttk.Frame):
     def create_threads(self):
         self.threadingEvent = threading.Event()
         self.speedometerThread = SpeedometerThread(self)
+        self.batteryVoltageThread = BatteryVoltageThread(self)
     
     def create_widgets(self):
         self.onButton = Button(self, textvariable=self.onoff, height=24, width=30, command=self.prompt)
@@ -232,45 +236,25 @@ class SpeedometerThread(threading.Thread):
 
     def notifyWatchdog(self):
         self.watchdog_time_since = time.time()
+
+class BatteryVoltageThread(threading.Thread):
+
+    def __init__(self, app):
+        threading.Thread.__init__(self)
+        self.app = app
+        self.name = "BatteryVoltage"
+
+    def run(self):
+        self.demo()
+        print(self.name + " Exited gracefully!")
+        pass
+
+    def demo(self):
+        while True:
+            print(serial.readBatteryInformation())
+            if self.app.threadingEvent.wait(timeout=1):
+                break
             
-class Speedometer:
-
-    pin = 0
-    circumference = 0
-    start_time = 0
-    speed = 0
-    
-    def __init__(self, watchdogThread, circumference, pin=18):
-        self.pin = pin
-        self.watchdogThread = watchdogThread
-        self.circumference = circumference
-
-    def setup(self):
-        print('setup speedometer')
-        GPIO.setup(self.pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-        GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
-        
-    def calc_speed(self, val):
-        self.watchdogThread.notifyWatchdog()
-        if(self.start_time == 0):
-            self.start_time = time.time()
-            return None
-        elapse = time.time() - self.start_time
-        rpm = 1/elapse * 60
-        dist_km = self.circumference/100000
-        km_per_sec = dist_km / elapse
-        km_per_hour = km_per_sec * 3600
-        self.speed = km_per_hour
-        self.start_time = time.time()
-        print(self.speed + " Speedometer read")
-
-    def getSpeed(self):
-        return self.speed
-
-    def reset(self):
-        self.start_time = 0
-        self.speed = 0
-        
 
 class Util:
     
