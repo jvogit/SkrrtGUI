@@ -151,7 +151,7 @@ class Kart:
         Application.disableButton(app.gasChange)
         app.onoff.set('OFF')
         app.onButton.invoke()
-        app.root.after(self.FULL_OFF_DELAY * 1000, lambda : Util.batch_execute_func(Application.disableButton(app.onButton, app.gasChange)))
+        app.root.after(1, lambda : Util.batch_execute_func(Application.disableButton(app.onButton, app.gasChange)))
         app.root.after(self.SAFETY_OFF_DELAY * 1000, lambda : Util.batch_execute_func(Application.enableButton(app.gasChange, app.onButton),
                                                               print('Gas now changeg!')))
 
@@ -161,10 +161,11 @@ class Kart:
         print("Pin KEY")
         GPIO.output(29, GPIO.HIGH)
         time.sleep(1)
-        print("ON ENABLE")
+        print("Pin ON ENABLE")
         GPIO.output(31, GPIO.HIGH)
 
     def off_pin_seq(self):
+        print('OFF ALL PINS')
         for pin in self.pins:
             GPIO.output(pin, GPIO.LOW)
             time.sleep(self.DEFAULT_PIN_DELAY)
@@ -175,11 +176,13 @@ class Kart:
     def forward_pin_seq(self):
         self.neutral_pin_seq()
         time.sleep(1)
+        print('Pin FORWARD')
         GPIO.output(37, GPIO.HIGH)
 
     def reverse_pin_seq(self):
         self.neutral_pin_seq()
         time.sleep(1)
+        print('Pin REVERSE')
         GPIO.output(35, GPIO.HIGH)
 
     def gas_pin_seq(self):
@@ -238,12 +241,12 @@ class Speedometer:
     speed = 0
     
     def __init__(self, watchdogThread, circumference, pin=18):
-       self.pin = pin
-       self.watchdogThread = watchdogThread
-       self.circumference = circumference
+        self.pin = pin
+        self.watchdogThread = watchdogThread
+        self.circumference = circumference
 
     def setup(self):
-        print('setup')
+        print('setup speedometer')
         GPIO.setup(self.pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
         
