@@ -42,6 +42,7 @@ class Application(ttk.Frame):
         self.statusVar = StringVar(self, value="OFF")
         self.onoff = StringVar(self, value="ON")
         self.speedVar = StringVar(self, value="0\nmph")
+        self.batteryInfoVar = StringVar(self, value = 'Battery Pack {0} {1}% {2}V\nBattery Pack {3} {4}% {5}V ⚡')
         self.kart = Kart()
         
     def toggleFullScreen(self, event=None):
@@ -61,7 +62,7 @@ class Application(ttk.Frame):
         self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=4, width=30)
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
-        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} {1}% {2}V\nBattery Pack {3} {4}% {5}V ⚡')
+        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', textvariable=self.batteryInfoVar)
         self.gasChange = Button(self, text="Gas", height=4, width=30, command=lambda : self.kart.gas(self))
         
     def grid_widgets(self):
@@ -250,9 +251,21 @@ class BatteryVoltageThread(threading.Thread):
         pass
 
     def demo(self):
+        batVar = self.app.batteryInfoVar
         while True:
-            print(serial.readBatteryInformation())
-            if self.app.threadingEvent.wait(timeout=1):
+            raw = serial.readBatteryInformation()
+            #print(serial.readBatteryInformation())
+            splitted = raw.split(';')
+            batOneVol = int(splitted[0])
+            batTwoVol = int(splitted[1])
+            if(int(splitted[2])):
+               charge = True
+            else:
+               charge = False
+            finalString = 'Battery Pack 1 {0:02d}% {1:02d}V\nBattery Pack 2 {2:02d}% {3:02d}V'\
+                          .format(int(batOneVol*100/48), batOneVol, int(batTwoVol*100/48), batTwoVol)
+            batVar.set(finalString)
+            if self.app.threadingEvent.wait(timeout=1/2):
                 break
             
 
