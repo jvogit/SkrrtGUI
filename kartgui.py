@@ -191,6 +191,8 @@ class Kart:
         GPIO.output(35, GPIO.HIGH)
 
     def gas_pin_seq(self):
+        self.off_pin_seq()
+        print('Pin GAS')
         pass
 
 class SpeedometerThread(threading.Thread):
