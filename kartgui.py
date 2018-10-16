@@ -1,10 +1,12 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox as mb
+from Speedometer import Speedometer
 import threading
 import time
 import math
 import RPi.GPIO as GPIO
+import KartSerialConnector as serial
 class Application(ttk.Frame):
 
     
@@ -33,12 +35,14 @@ class Application(ttk.Frame):
         self.create_widgets()
         self.grid_widgets()
         self.speedometerThread.start()
+        self.batteryVoltageThread.start()
         
     def create_variables(self):
         self.fullscreen = True
         self.statusVar = StringVar(self, value="OFF")
         self.onoff = StringVar(self, value="ON")
         self.speedVar = StringVar(self, value="0\nmph")
+        self.batteryInfoVar = StringVar(self, value = 'Battery Pack {0} {1}% {2}V\nBattery Pack {3} {4}% {5}V ⚡')
         self.kart = Kart()
         
     def toggleFullScreen(self, event=None):
@@ -48,6 +52,7 @@ class Application(ttk.Frame):
     def create_threads(self):
         self.threadingEvent = threading.Event()
         self.speedometerThread = SpeedometerThread(self)
+        self.batteryVoltageThread = BatteryVoltageThread(self)
     
     def create_widgets(self):
         self.onButton = Button(self, textvariable=self.onoff, height=24, width=30, command=self.prompt)
@@ -57,7 +62,7 @@ class Application(ttk.Frame):
         self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=4, width=30)
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
-        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', text='Battery Pack {0} {1}% {2}V\nBattery Pack {3} {4}% {5}V ⚡')
+        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', textvariable=self.batteryInfoVar)
         self.gasChange = Button(self, text="Gas", height=4, width=30, command=lambda : self.kart.gas(self))
         
     def grid_widgets(self):
@@ -151,7 +156,7 @@ class Kart:
         Application.disableButton(app.gasChange)
         app.onoff.set('OFF')
         app.onButton.invoke()
-        app.root.after(self.FULL_OFF_DELAY * 1000, lambda : Util.batch_execute_func(Application.disableButton(app.onButton, app.gasChange)))
+        app.root.after(1, lambda : Util.batch_execute_func(Application.disableButton(app.onButton, app.gasChange)))
         app.root.after(self.SAFETY_OFF_DELAY * 1000, lambda : Util.batch_execute_func(Application.enableButton(app.gasChange, app.onButton),
                                                               print('Gas now changeg!')))
 
@@ -161,10 +166,11 @@ class Kart:
         print("Pin KEY")
         GPIO.output(29, GPIO.HIGH)
         time.sleep(1)
-        print("ON ENABLE")
+        print("Pin ON ENABLE")
         GPIO.output(31, GPIO.HIGH)
 
     def off_pin_seq(self):
+        print('OFF ALL PINS')
         for pin in self.pins:
             GPIO.output(pin, GPIO.LOW)
             time.sleep(self.DEFAULT_PIN_DELAY)
@@ -175,14 +181,18 @@ class Kart:
     def forward_pin_seq(self):
         self.neutral_pin_seq()
         time.sleep(1)
+        print('Pin FORWARD')
         GPIO.output(37, GPIO.HIGH)
 
     def reverse_pin_seq(self):
         self.neutral_pin_seq()
         time.sleep(1)
+        print('Pin REVERSE')
         GPIO.output(35, GPIO.HIGH)
 
     def gas_pin_seq(self):
+        self.off_pin_seq()
+        print('Pin GAS')
         pass
 
 class SpeedometerThread(threading.Thread):
@@ -229,45 +239,37 @@ class SpeedometerThread(threading.Thread):
 
     def notifyWatchdog(self):
         self.watchdog_time_since = time.time()
+
+class BatteryVoltageThread(threading.Thread):
+
+    def __init__(self, app):
+        threading.Thread.__init__(self)
+        self.app = app
+        self.name = "BatteryVoltage"
+
+    def run(self):
+        self.batteryVoltageUpdateLoop()
+        print(self.name + " Exited gracefully!")
+        pass
+
+    def batteryVoltageUpdateLoop(self):
+        batVar = self.app.batteryInfoVar
+        while True:
+            raw = serial.readBatteryInformation()
+            #print(serial.readBatteryInformation())
+            splitted = raw.split(';')
+            batOneVol = int(splitted[0])
+            batTwoVol = int(splitted[1])
+            if(int(splitted[2])):
+               charge = True
+            else:
+               charge = False
+            finalString = 'Battery Pack 1 {0:02d}% {1:02d}V\nBattery Pack 2 {2:02d}% {3:02d}V'\
+                          .format(int(batOneVol*100/48), batOneVol, int(batTwoVol*100/48), batTwoVol)
+            batVar.set(finalString)
+            if self.app.threadingEvent.wait(timeout=1/2):
+                break
             
-class Speedometer:
-
-    pin = 0
-    circumference = 0
-    start_time = 0
-    speed = 0
-    
-    def __init__(self, watchdogThread, circumference, pin=18):
-       self.pin = pin
-       self.watchdogThread = watchdogThread
-       self.circumference = circumference
-
-    def setup(self):
-        print('setup')
-        GPIO.setup(self.pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-        GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
-        
-    def calc_speed(self, val):
-        self.watchdogThread.notifyWatchdog()
-        if(self.start_time == 0):
-            self.start_time = time.time()
-            return None
-        elapse = time.time() - self.start_time
-        rpm = 1/elapse * 60
-        dist_km = self.circumference/100000
-        km_per_sec = dist_km / elapse
-        km_per_hour = km_per_sec * 3600
-        self.speed = km_per_hour
-        self.start_time = time.time()
-        print(self.speed + " Speedometer read")
-
-    def getSpeed(self):
-        return self.speed
-
-    def reset(self):
-        self.start_time = 0
-        self.speed = 0
-        
 
 class Util:
     
