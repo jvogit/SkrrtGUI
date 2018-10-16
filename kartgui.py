@@ -248,11 +248,11 @@ class BatteryVoltageThread(threading.Thread):
         self.name = "BatteryVoltage"
 
     def run(self):
-        self.demo()
+        self.batteryVoltageUpdateLoop()
         print(self.name + " Exited gracefully!")
         pass
 
-    def demo(self):
+    def batteryVoltageUpdateLoop(self):
         batVar = self.app.batteryInfoVar
         while True:
             raw = serial.readBatteryInformation()
