@@ -13,7 +13,8 @@ class FocusModeGUI(ttk.Frame):
     #width 94 height 31 !
     def create_widgets(self):
         self.statusBar = Label(self, width=90, height=5, relief='groove', textvariable=self.app.statusVar)
-        self.revert = Button(self, width=30, height=8, relief='flat', text='GEAR', command=self.app.switchFrame)
+        self.batteryInfo = Label(self, width=30, height=5, textvariable=self.app.batteryInfoVar)
+        self.revert = Button(self, width=30, height=8, relief='flat', text='', command=self.app.switchFrame)
         self.speed = Label(self, width=30, height=25, textvariable=self.app.speedVar)
         self.placeholder1 = Button(self, width=30, height=8, relief='flat', state=DISABLED)
         self.placeholder2 = Button(self, width=30, height=8, relief='flat', state=DISABLED)
@@ -24,8 +25,10 @@ class FocusModeGUI(ttk.Frame):
         self.placeholder1.grid(column=0, row=1, sticky='news')
         self.placeholder2.grid(column=1, row=2, sticky='news')
         self.placeholder3.grid(column=2, row=3, sticky='news')
-        self.revert.grid(column=0, row=1, rowspan=3, sticky='news')
+        self.revert.grid(column=2, row=1, rowspan=3, sticky='news')
         self.revert.tkraise()
         self.speed.grid(column=1, row=1, rowspan=3, sticky='news')
+        self.batteryInfo.grid(column=1, row=3, sticky='news')
         self.speed.tkraise()
+        self.batteryInfo.tkraise()
         pass

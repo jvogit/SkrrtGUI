@@ -226,6 +226,7 @@ class SpeedometerThread(threading.Thread):
         self.speedometer.setup()
         
     def run(self):
+        #self.demo()
         self.speedometerUpdateLoop()
         print(self.name + " thread exited gracefully!")
 
@@ -239,7 +240,7 @@ class SpeedometerThread(threading.Thread):
                 self.counter = 0
 
             timeout = 0.1
-            if(self.counter > 60):
+            if(self.counter > 80):
                 timeout = 0.5
             
             if self.app.threadingEvent.wait(timeout=timeout):
