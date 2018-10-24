@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox as mb
 from Speedometer import Speedometer
+from FocusModeGUI import FocusModeGUI
 import threading
 import time
 import math
@@ -16,26 +17,43 @@ class Application(ttk.Frame):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         root = Tk()
-        app = cls(root)
-        app.grid(column=1, row=1)
-        root.resizable(True, True)
         root.geometry("800x480")
+        root.resizable(True, True)
+        container = ttk.Frame(root)
+        container.grid(column=1, row=1)
+        app = cls(root, container)
+        frames = [app, FocusModeGUI(root, container, app)]
+        frames[0].grid(column=1,row=1)
+        frames[1].grid(column=1,row=1)
+        frames[0].tkraise()
+        app.frames = frames
+        #app.grid(column=1, row=1)
         root["bg"] = 'black'
         #root.attributes("-fullscreen", True)
         root.bind("<F11>", app.toggleFullScreen)
         root.protocol("WM_DELETE_WINDOW", app.on_closing)
         root.mainloop()
-        
-    def __init__(self, root, **args):
-        super().__init__(root, **args)
+    
+    def __init__(self, root, parent, **args):
+        super().__init__(parent, **args)
         print("Initialized application")
         self.root = root
+        self.frames = []
+        self.frameOn = True
         self.create_variables()
         self.create_threads()
         self.create_widgets()
         self.grid_widgets()
         self.speedometerThread.start()
         self.batteryVoltageThread.start()
+        
+    def switchFrame(self):
+        self.frameOn = not self.frameOn
+
+        if(not self.frameOn):
+            self.frames[1].tkraise()
+        else:
+            self.frames[0].tkraise()
         
     def create_variables(self):
         self.fullscreen = True
@@ -59,7 +77,7 @@ class Application(ttk.Frame):
         self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
         self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.kart.neutral(self))
         self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
-        self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=4, width=30)
+        self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=4, width=30, command=self.switchFrame)
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
         self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', textvariable=self.batteryInfoVar)
@@ -208,6 +226,7 @@ class SpeedometerThread(threading.Thread):
         self.speedometer.setup()
         
     def run(self):
+        #self.demo()
         self.speedometerUpdateLoop()
         print(self.name + " thread exited gracefully!")
 
@@ -221,7 +240,7 @@ class SpeedometerThread(threading.Thread):
                 self.counter = 0
 
             timeout = 0.1
-            if(self.counter > 60):
+            if(self.counter > 80):
                 timeout = 0.5
             
             if self.app.threadingEvent.wait(timeout=timeout):
