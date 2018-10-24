@@ -82,7 +82,7 @@ class Application(ttk.Frame):
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='flat', textvariable=self.speedVar)
         self.batteryChargingDisplay = Label(self, width = 30, height = 2, textvariable=self.batteryInfoVar)
-        self.gasChange = Button(self, text="Gas", height=4, width=30, relief='flat', command=lambda : self.kart.gas(self))
+        self.gasChange = Button(self, text="Gas", height=4, width=30, relief='flat', command=lambda : self.switchFrame())
         self.lightningDisplay = Label(self, width = 3, height = 2, textvariable=self.lightningVar)
         
     def grid_widgets(self):
