@@ -9,7 +9,6 @@ import math
 import RPi.GPIO as GPIO
 import KartSerialConnector as serial
 class Application(ttk.Frame):
-
     
     @classmethod
     def main(cls):
@@ -129,7 +128,7 @@ class Application(ttk.Frame):
 
 class Kart:
 
-    pins = [29, 31, 35, 37]
+    pins = [29, 31, 35, 37, 11, 13]
     DEFAULT_PIN_DELAY = 0.05
     FULL_OFF_DELAY = int(len(pins) * 0.05) + 1
     SAFETY_OFF_DELAY = FULL_OFF_DELAY + 3
@@ -220,8 +219,14 @@ class Kart:
     def switch_battery(self, app):
         self.bat_one = not self.bat_one
         if self.bat_one:
+            print('HIGH')
+            serial.arduino_serial.write('a'.encode())
+            time.sleep(1)
             app.lightningVar.set('⚡\n')
         else:
+            print('LOW')
+            serial.arduino_serial.write('a'.encode())
+            time.sleep(1)
             app.lightningVar.set('\n⚡')
         pass
 
@@ -287,7 +292,7 @@ class BatteryVoltageThread(threading.Thread):
         batVar = self.app.batteryInfoVar
         while True:
             raw = serial.readBatteryInformation()
-            #print(serial.readBatteryInformation())
+            print(serial.readBatteryInformation())
             splitted = raw.split(';')
             batOneVol = int(splitted[0])
             batTwoVol = int(splitted[1])
