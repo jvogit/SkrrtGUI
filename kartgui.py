@@ -9,7 +9,6 @@ import math
 import RPi.GPIO as GPIO
 import KartSerialConnector as serial
 class Application(ttk.Frame):
-
     
     @classmethod
     def main(cls):
@@ -61,6 +60,7 @@ class Application(ttk.Frame):
         self.onoff = StringVar(self, value="ON")
         self.speedVar = StringVar(self, value="0\nmph")
         self.batteryInfoVar = StringVar(self, value = 'Battery Pack {0} {1}% {2}V\nBattery Pack {3} {4}% {5}V ⚡')
+        self.lightningVar = StringVar(self, value = '\n⚡')
         self.kart = Kart()
         
     def toggleFullScreen(self, event=None):
@@ -77,11 +77,12 @@ class Application(ttk.Frame):
         self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
         self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.kart.neutral(self))
         self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
-        self.batteryToggleButton = Button(self, text="Switch Battery Pack", height=4, width=30, command=self.switchFrame)
+        self.batteryToggleButton = Button(self, text="Switch Battery Pack", relief='flat', height=4, width=30, command=lambda : self.kart.switch_battery(self))
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
-        self.speedDisplay = Label(self, width=30, height=15, relief='groove', textvariable=self.speedVar)
-        self.batteryChargingDisplay = Label(self, width = 30, height = 2, relief='groove', textvariable=self.batteryInfoVar)
-        self.gasChange = Button(self, text="Gas", height=4, width=30, command=lambda : self.kart.gas(self))
+        self.speedDisplay = Label(self, width=30, height=15, relief='flat', textvariable=self.speedVar)
+        self.batteryChargingDisplay = Label(self, width = 30, height = 2, textvariable=self.batteryInfoVar)
+        self.gasChange = Button(self, text="Gas", height=4, width=30, relief='flat', command=lambda : self.switchFrame())
+        self.lightningDisplay = Label(self, width = 3, height = 2, textvariable=self.lightningVar)
         
     def grid_widgets(self):
         self.status.grid(column=0, row=0, columnspan=3, sticky='NEWS')
@@ -92,6 +93,7 @@ class Application(ttk.Frame):
         self.neutral.grid(column=1, row=2, sticky='NWES')
         self.reverse.grid(column=1, row=3, sticky='NWES')
         self.batteryToggleButton.grid(column=2, row=3, sticky='NWE')
+        self.lightningDisplay.grid(column=2, row=2, sticky='ES')
         self.gasChange.grid(column=2, row=3, sticky='EWS')
         for i in range(3):
             self.root.grid_columnconfigure(i, weight=1)
@@ -126,10 +128,11 @@ class Application(ttk.Frame):
 
 class Kart:
 
-    pins = [29, 31, 35, 37]
+    pins = [29, 31, 35, 37, 11, 13]
     DEFAULT_PIN_DELAY = 0.05
     FULL_OFF_DELAY = int(len(pins) * 0.05) + 1
     SAFETY_OFF_DELAY = FULL_OFF_DELAY + 3
+    bat_one = False
     
     def __init__(self):
         GPIO.setup(self.pins, GPIO.OUT)
@@ -213,6 +216,20 @@ class Kart:
         print('Pin GAS')
         pass
 
+    def switch_battery(self, app):
+        self.bat_one = not self.bat_one
+        if self.bat_one:
+            print('HIGH')
+            serial.arduino_serial.write('a'.encode())
+            time.sleep(1)
+            app.lightningVar.set('⚡\n')
+        else:
+            print('LOW')
+            serial.arduino_serial.write('a'.encode())
+            time.sleep(1)
+            app.lightningVar.set('\n⚡')
+        pass
+
 class SpeedometerThread(threading.Thread):
 
     watchdog_time_since = 0
@@ -275,7 +292,7 @@ class BatteryVoltageThread(threading.Thread):
         batVar = self.app.batteryInfoVar
         while True:
             raw = serial.readBatteryInformation()
-            #print(serial.readBatteryInformation())
+            print(serial.readBatteryInformation())
             splitted = raw.split(';')
             batOneVol = int(splitted[0])
             batTwoVol = int(splitted[1])

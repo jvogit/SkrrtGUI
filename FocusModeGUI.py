@@ -14,6 +14,7 @@ class FocusModeGUI(ttk.Frame):
     def create_widgets(self):
         self.statusBar = Label(self, width=90, height=5, relief='groove', textvariable=self.app.statusVar)
         self.batteryInfo = Label(self, width=30, height=5, textvariable=self.app.batteryInfoVar)
+        self.cInd = Label(self, width=3, height=5, textvariable=self.app.lightningVar)
         self.revert = Button(self, width=30, height=8, relief='flat', text='', command=self.app.switchFrame)
         self.speed = Label(self, width=30, height=25, textvariable=self.app.speedVar)
         self.placeholder1 = Button(self, width=30, height=8, relief='flat', state=DISABLED)
@@ -29,6 +30,8 @@ class FocusModeGUI(ttk.Frame):
         self.revert.tkraise()
         self.speed.grid(column=1, row=1, rowspan=3, sticky='news')
         self.batteryInfo.grid(column=1, row=3, sticky='news')
+        self.cInd.grid(column=1, row=3, sticky='e')
         self.speed.tkraise()
         self.batteryInfo.tkraise()
+        self.cInd.tkraise()
         pass
