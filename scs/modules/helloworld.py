@@ -1,0 +1,15 @@
+#You can import any required modules here
+
+#This can be anything you want
+moduleName = "helloworld"
+
+#All of the words must be heard in order for this module to be executed
+commandWords = ["hello", "world"]
+
+def execute(command, *args):
+    #Write anything you want to be executed when the commandWords are heard
+    #The 'command' parameter is the command you speak
+    print('Hello world!')
+    gui = args[0]
+    gui.textVar.set('Hello, world!')
+    return
