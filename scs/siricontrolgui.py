@@ -2,8 +2,11 @@ from tkinter import *
 import threading
 from siricontrol import Control
 from PIL import Image, ImageTk
+from pathlib import Path
 import audioplayer
 import time
+from gtts import gTTS
+import hashlib
 #Application class
 class Application(Frame):
 
@@ -30,7 +33,7 @@ class Application(Frame):
         SiriListenThread(self).start()
     
     def create_widgets(self):
-        self.textVar = StringVar(self, value='Test')
+        self.textVar = StringVar(self, value='Oh boy')
         self.label = Label(self, textvariable=self.textVar)
         pass #means do nothing
 
@@ -48,8 +51,18 @@ class Application(Frame):
 
     def guess_who_here(self):
         img = ImageTk.PhotoImage(Image.open('patrick.jpg'), master=self.root)
-        self.label.config(image = img)
+        self.root.after(2000, lambda : self.label.config(image = img))
         audioplayer.PlayVideo('sample2.mp3')
+
+    def tts(self, tosay):
+        encoded = hashlib.sha224(tosay.encode()).hexdigest()
+        dire = Path("tts")
+        file = Path("tts/"+encoded + ".mp3")
+        if not dire.exists:
+            dire.mkdir()
+        if not file.is_file():
+            gTTS(tosay, lang='en').save("tts/"+encoded + ".mp3")
+        audioplayer.PlayVideo("tts/"+encoded+".mp3")
 
 class SiriListenThread(threading.Thread):
     def __init__(self, gui):
