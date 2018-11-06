@@ -54,6 +54,9 @@ class Application(Frame):
         self.root.after(2000, lambda : self.label.config(image = img))
         audioplayer.PlayVideo('sample2.mp3')
 
+    def play_song(self, to):
+        audioplayer.LookUpAndPlay(to, True, self.tts)
+
     def tts(self, tosay):
         encoded = hashlib.sha224(tosay.encode()).hexdigest()
         dire = Path("tts")
