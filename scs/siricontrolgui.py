@@ -1,10 +1,11 @@
 from tkinter import *
-from tkinter import ttk
 import threading
 from siricontrol import Control
+from PIL import Image, ImageTk
 import audioplayer
+import time
 #Application class
-class Application(ttk.Frame):
+class Application(Frame):
 
     someVar = 'Default' #Setting class variables
     
@@ -30,7 +31,7 @@ class Application(ttk.Frame):
     
     def create_widgets(self):
         self.textVar = StringVar(self, value='Test')
-        self.label = Label(self, width = 30, height = 30, textvariable=self.textVar)
+        self.label = Label(self, textvariable=self.textVar)
         pass #means do nothing
 
     def grid_widgets(self):
@@ -45,6 +46,11 @@ class Application(ttk.Frame):
     def take_me_home(self):
         audioplayer.PlayVideo('sample.mp4')
 
+    def guess_who_here(self):
+        img = ImageTk.PhotoImage(Image.open('patrick.jpg'), master=self.root)
+        self.label.config(image = img)
+        audioplayer.PlayVideo('sample2.mp3')
+
 class SiriListenThread(threading.Thread):
     def __init__(self, gui):
         super().__init__()
@@ -54,4 +60,4 @@ class SiriListenThread(threading.Thread):
         Control(self.gui)
 #Allows start
 if __name__ == "__main__":
-    Application.main()
+    app = Application.main()
