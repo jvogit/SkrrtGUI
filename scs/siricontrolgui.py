@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 import threading
 from siricontrol import Control
-import videomyguy
+import audioplayer
 #Application class
 class Application(ttk.Frame):
 
@@ -43,7 +43,7 @@ class Application(ttk.Frame):
         pass
 
     def take_me_home(self):
-        videomyguy.PlayVideo('sample.mp4')
+        audioplayer.PlayVideo('sample.mp4')
 
 class SiriListenThread(threading.Thread):
     def __init__(self, gui):
