@@ -296,10 +296,6 @@ class BatteryVoltageThread(threading.Thread):
             splitted = raw.split(';')
             batOneVol = float(splitted[0])
             batTwoVol = float(splitted[1])
-            '''if(int(splitted[2])):
-               charge = True
-            else:
-               charge = False'''
             finalString = 'Battery Pack 1 {0:02d}% {1:02d}V\nBattery Pack 2 {2:02d}% {3:02d}V'\
                           .format(int(batOneVol*100/48), int(batOneVol), int(batTwoVol*100/48), int(batTwoVol))
             batVar.set(finalString)
