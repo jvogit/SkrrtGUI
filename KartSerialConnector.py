@@ -1,6 +1,6 @@
 import serial
 try:
-    arduino_serial = serial.Serial('/dev/ttyUSB0', 9600)
+    arduino_serial = serial.Serial('/dev/ttyUSB1', 9600)
     print('success i can see arduino usb port?')
 except:
     arduino_serial = None
