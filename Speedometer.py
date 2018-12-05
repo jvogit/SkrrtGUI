@@ -12,7 +12,6 @@ class Speedometer:
         self.circumference = circumference
 
     def setup(self):
-        print('setup speedometer')
         GPIO.setup(self.pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
         

@@ -292,7 +292,7 @@ class BatteryVoltageThread(threading.Thread):
         batVar = self.app.batteryInfoVar
         while True:
             raw = serial.readBatteryInformation().decode('utf-8')
-            print(raw)
+            #print(raw)
             splitted = raw.split(';')
             batOneVol = float(splitted[0])
             batTwoVol = float(splitted[1])
