@@ -291,19 +291,18 @@ class BatteryVoltageThread(threading.Thread):
     def batteryVoltageUpdateLoop(self):
         batVar = self.app.batteryInfoVar
         while True:
-            raw = serial.readBatteryInformation()
-            print(serial.readBatteryInformation())
-            splitted = raw.split(';')
-            batOneVol = int(splitted[0])
-            batTwoVol = int(splitted[1])
-            if(int(splitted[2])):
-               charge = True
-            else:
-               charge = False
-            finalString = 'Battery Pack 1 {0:02d}% {1:02d}V\nBattery Pack 2 {2:02d}% {3:02d}V'\
-                          .format(int(batOneVol*100/48), batOneVol, int(batTwoVol*100/48), batTwoVol)
-            batVar.set(finalString)
-            if self.app.threadingEvent.wait(timeout=1/2):
+            try:
+                raw = serial.readBatteryInformation().decode('utf-8')
+                #print(raw)
+                splitted = raw.split(';')
+                batOneVol = float(splitted[0])
+                batTwoVol = float(splitted[1])
+                finalString = 'Battery Pack 1 {0:02d}% {1:02d}V\nBattery Pack 2 {2:02d}% {3:02d}V'\
+                              .format(int(batOneVol*100/48), int(batOneVol), int(batTwoVol*100/48), int(batTwoVol))
+                batVar.set(finalString)
+            except:
+                pass
+            if self.app.threadingEvent.wait(timeout=200/1000):
                 break
             
 

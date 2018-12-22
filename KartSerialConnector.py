@@ -1,15 +1,25 @@
 import serial
+import time
 try:
     arduino_serial = serial.Serial('/dev/ttyUSB0', 9600)
-    print('success i can see arduino usb port?')
+    print('Arduino Port Open USB 0')
 except:
-    arduino_serial = None
-    print('Oh no! The Arduino could not be detected. Check proper COM port')
+    try:
+        arduino_serial = serial.Serial('/dev/ttyUSB1', 9600)
+        print('Arduino Port Open USB 1')
+    except:
+        arduino_serial = None
+        print('Arduino Port Not Detected USB0 or USB1')
+        
 def readBatteryInformation():
     global arduino_serial
     try:
+        if(arduino_serial is None):
+            return '0.00;0.00'.encode()
+        arduino_serial.flushOutput()
+        
         return arduino_serial.readline()
     except:
-        print('Arduino port error. Is plugged in? Is port busy? Restart required.')
-        return '0;0;0'
+        print('Cannot read Serial readline')
+        return '0.00;0.00'.encode()
 
