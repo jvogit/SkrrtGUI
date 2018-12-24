@@ -20,6 +20,6 @@ def readBatteryInformation():
         
         return arduino_serial.readline()
     except:
-        print('Cannot read Serial readline')
+        print('Cannot read Serial println')
         return '0.00;0.00'.encode()
 
