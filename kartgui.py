@@ -80,7 +80,7 @@ class Application(ttk.Frame):
         self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
         self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.kart.neutral(self))
         self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
-        self.batteryToggleButton = Button(self, text="Switch Battery Pack", relief='flat', height=4, width=30, command=lambda : self.switchFrame())
+        self.batteryToggleButton = Button(self, text="FOCUS MODE", relief='flat', height=4, width=30, command=lambda : self.switchFrame())
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='flat', textvariable=self.speedVar)
         self.batteryChargingDisplay = Label(self, width = 30, height = 2, textvariable=self.batteryInfoVar)
@@ -316,11 +316,11 @@ class BatteryVoltageThread(threading.Thread):
                 #print(raw)
                 splitted = raw.split(';')
                 batOneVol = float(splitted[0])
-                batTwoVol = float(splitted[1])
                 finalString = 'Battery Pack 1 {0:02d}% {1:02d}V'\
-                              .format(int(batOneVol*100/48), int(batOneVol), int(batTwoVol*100/48), int(batTwoVol))
+                              .format(int(batOneVol*100/48), int(batOneVol))
                 batVar.set(finalString)
-            except:
+            except Exception as e:
+                print(e)
                 pass
             if self.app.threadingEvent.wait(timeout=200/1000):
                 break
