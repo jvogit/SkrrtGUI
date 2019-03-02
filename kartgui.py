@@ -38,7 +38,7 @@ class Application(ttk.Frame):
         print("Initialized application")
         self.root = root
         self.frames = []
-        self.frameOn = True
+        self.frameOn = 0
         self.create_variables()
         self.create_threads()
         self.create_widgets()
@@ -47,15 +47,15 @@ class Application(ttk.Frame):
         self.batteryVoltageThread.start()
         
     def switchFrame(self):
-        self.frameOn = not self.frameOn
-
-        if(not self.frameOn):
+        
+        if(self.frameOn == 0):
             self.switchFrameOn(1)
         else:
             self.switchFrameOn(0)
 
     def switchFrameOn(self, to):
         self.frames[to].tkraise()
+        self.frameOn = to
         
     def create_variables(self):
         self.fullscreen = True
@@ -268,12 +268,28 @@ class SpeedometerThread(threading.Thread):
                     break
 
     def speedometerUpdateLoop(self):
+        zero_count = 0
+        no_zero_count = 0
+        zero_timeout = 150
+        no_zero_timeout = 150
         while True:
             if time.time() - self.watchdog_time_since > 5:
                 self.speedometer.reset()
             speed = self.speedometer.getSpeed()
             self.app.speedVar.set('{0:.0f}'.format(speed) + "\nkm/hr")
-            if self.app.threadingEvent.wait(timeout=1/2000):
+            if speed == 0:
+                zero_count += 1 if zero_count != zero_timeout else 0
+            else:
+                no_zero_count += 1 if no_zero_count != no_zero_timeout else 0
+            if speed <= 0 and zero_count >= zero_timeout and no_zero_count != 0:
+                no_zero_count = 0
+                self.app.switchFrameOn(0)
+                zero_count = zero_timeout
+            elif speed > 0 and no_zero_count >= no_zero_timeout and zero_count != 0:
+                zero_count = 0
+                self.app.switchFrameOn(1)
+                no_zero_count = no_zero_timeout
+            if self.app.threadingEvent.wait(timeout=1/1000):
                break;
                 
 

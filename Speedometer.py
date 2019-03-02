@@ -1,4 +1,5 @@
 from RPi import GPIO as GPIO
+import time
 class Speedometer:
 
     pin = 0
@@ -27,7 +28,6 @@ class Speedometer:
         km_per_hour = km_per_sec * 3600
         self.speed = km_per_hour
         self.start_time = time.time()
-        print(self.speed + " Speedometer read")
 
     def getSpeed(self):
         return self.speed
