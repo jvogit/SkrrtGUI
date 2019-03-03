@@ -6,7 +6,7 @@ moduleName = "templateModule"
 #All of the words must be heard in order for this module to be executed
 commandWords = ["xyz"]
 
-def execute(command, *args):
+def execute(command, args):
     #Write anything you want to be executed when the commandWords are heard
     #The 'command' parameter is the command you speak
     return

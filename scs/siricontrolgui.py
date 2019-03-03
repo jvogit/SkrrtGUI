@@ -50,9 +50,6 @@ class Application(Frame):
         self.someVar = 'Hello, World!' #setting class instance variables
         pass
 
-    def take_me_home(self):
-        self.audioplayer.PlayVideo('sample.mp4')
-
     def guess_who_here(self):
         img = ImageTk.PhotoImage(Image.open('patrick.jpg'), master=self.root)
         self.root.after(2000, lambda : self.label.config(image = img))
@@ -69,7 +66,7 @@ class Application(Frame):
         if not dire.exists():
             dire.mkdir()
         if not file.is_file():
-            gTTS(tosay, lang='ja').save("tts/"+encoded + ".mp3")
+            gTTS(tosay, lang='en').save("tts/"+encoded + ".mp3")
         self.audioplayer.inde_play("tts/"+encoded+".mp3")
 
 class SiriListenThread(threading.Thread):

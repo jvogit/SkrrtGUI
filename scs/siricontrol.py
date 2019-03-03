@@ -1,6 +1,7 @@
 import time
 import imaplib
 import email
+from email import policy
 import os
 import pkgutil
 
@@ -19,7 +20,7 @@ class ControlException(Exception):
 
 
 class Control():
-    def __init__(self, gui):
+    def __init__(self, *passthru):
         global username, password
         try:
             self.last_checked = -1
@@ -27,7 +28,8 @@ class Control():
             self.mail.login(username, password)
             self.mail.list()
             self.mail.select("Notes")
-            self.gui = gui
+            self.passthru = passthru
+            print(self.passthru)
 
             # Gets last Note id to stop last command from executing
             result, uidlist = self.mail.search(None, "ALL")
@@ -82,8 +84,8 @@ class Control():
 
         self.last_checked = latest_email_id
         result, data = self.mail.fetch(latest_email_id, "(RFC822)")
-        voice_command = email.message_from_string(data[0][1].decode('utf-8'))
-        return str(voice_command.get_payload()).lower().strip()
+        voice_command = email.message_from_string(data[0][1].decode('utf-8'), policy=policy.default)
+        return str(voice_command.get_content()).lower().strip()
 
     def handle(self):
         """Handle new commands
@@ -107,7 +109,7 @@ class Control():
                             foundWords.append(str(word))
                     if len(foundWords) == len(module.commandWords):
                         try:
-                            module.execute(command, self.gui)
+                            module.execute(command, self.passthru)
                             print("The module {0} has been executed "
                                   "successfully.".format(module.moduleName))
                         except Exception as exc:
@@ -127,4 +129,4 @@ class Control():
 
 
 if __name__ == '__main__':
-    Control(username, password, gui)
+    Control(username, password)
