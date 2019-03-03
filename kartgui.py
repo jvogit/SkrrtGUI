@@ -80,7 +80,7 @@ class Application(ttk.Frame):
         self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
         self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.kart.neutral(self))
         self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
-        self.batteryToggleButton = Button(self, text="FOCUS MODE", relief='flat', height=4, width=30, command=lambda : self.switchFrame())
+        self.focusModeButton = Button(self, text="FOCUS MODE", relief='flat', height=4, width=30, command=lambda : self.switchFrame())
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='flat', textvariable=self.speedVar)
         self.batteryChargingDisplay = Label(self, width = 30, height = 2, textvariable=self.batteryInfoVar)
@@ -95,7 +95,7 @@ class Application(ttk.Frame):
         self.forward.grid(column=1, row=1, sticky='NWES')
         self.neutral.grid(column=1, row=2, sticky='NWES')
         self.reverse.grid(column=1, row=3, sticky='NWES')
-        self.batteryToggleButton.grid(column=2, row=3, sticky='NWE')
+        self.focusModeButton.grid(column=2, row=3, sticky='NWE')
         self.lightningDisplay.grid(column=2, row=2, sticky='ES')
         self.gasChange.grid(column=2, row=3, sticky='EWS')
         for i in range(3):
