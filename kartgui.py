@@ -38,7 +38,7 @@ class Application(ttk.Frame):
         print("Initialized application")
         self.root = root
         self.frames = []
-        self.frameOn = True
+        self.frameOn = 0
         self.create_variables()
         self.create_threads()
         self.create_widgets()
@@ -47,20 +47,23 @@ class Application(ttk.Frame):
         self.batteryVoltageThread.start()
         
     def switchFrame(self):
-        self.frameOn = not self.frameOn
-
-        if(not self.frameOn):
-            self.frames[1].tkraise()
+        
+        if(self.frameOn == 0):
+            self.switchFrameOn(1)
         else:
-            self.frames[0].tkraise()
+            self.switchFrameOn(0)
+
+    def switchFrameOn(self, to):
+        self.frames[to].tkraise()
+        self.frameOn = to
         
     def create_variables(self):
         self.fullscreen = True
         self.statusVar = StringVar(self, value="OFF")
         self.onoff = StringVar(self, value="ON")
         self.speedVar = StringVar(self, value="0\nmph")
-        self.batteryInfoVar = StringVar(self, value = 'Battery Pack {0} {1}% {2}V\nBattery Pack {3} {4}% {5}V ⚡')
-        self.lightningVar = StringVar(self, value = '\n⚡')
+        self.batteryInfoVar = StringVar(self, value = 'Battery Pack {0} {1}% {2}V ⚡')
+        self.lightningVar = StringVar(self, value = '\n\n')
         self.kart = Kart()
         
     def toggleFullScreen(self, event=None):
@@ -77,11 +80,11 @@ class Application(ttk.Frame):
         self.forward = Button(self, text="Forward", height=8, width=30, state=DISABLED, command=lambda : self.kart.forward(self))
         self.neutral = Button(self, text="Neutral", height=8, width=30, state=DISABLED, command=lambda : self.kart.neutral(self))
         self.reverse = Button(self, text="Reverse", height=8, width=30, state=DISABLED, command=lambda : self.kart.reverse(self))
-        self.batteryToggleButton = Button(self, text="Switch Battery Pack", relief='flat', height=4, width=30, command=lambda : self.kart.switch_battery(self))
+        self.focusModeButton = Button(self, text="FOCUS MODE", relief='flat', height=4, width=30, command=lambda : self.switchFrame())
         self.status = Label(self, width=90, height=5, textvariable=self.statusVar, relief='groove')
         self.speedDisplay = Label(self, width=30, height=15, relief='flat', textvariable=self.speedVar)
         self.batteryChargingDisplay = Label(self, width = 30, height = 2, textvariable=self.batteryInfoVar)
-        self.gasChange = Button(self, text="Gas", height=4, width=30, relief='flat', command=lambda : self.switchFrame())
+        self.gasChange = Button(self, text="Gas", height=4, width=30, relief='flat', command=lambda : self.kart.gas(self))
         self.lightningDisplay = Label(self, width = 3, height = 2, textvariable=self.lightningVar)
         
     def grid_widgets(self):
@@ -92,7 +95,7 @@ class Application(ttk.Frame):
         self.forward.grid(column=1, row=1, sticky='NWES')
         self.neutral.grid(column=1, row=2, sticky='NWES')
         self.reverse.grid(column=1, row=3, sticky='NWES')
-        self.batteryToggleButton.grid(column=2, row=3, sticky='NWE')
+        self.focusModeButton.grid(column=2, row=3, sticky='NWE')
         self.lightningDisplay.grid(column=2, row=2, sticky='ES')
         self.gasChange.grid(column=2, row=3, sticky='EWS')
         for i in range(3):
@@ -224,10 +227,11 @@ class Kart:
             time.sleep(1)
             app.lightningVar.set('⚡\n')
         else:
-            print('LOW')
+            '''print('LOW')
             serial.arduino_serial.write('a'.encode())
             time.sleep(1)
-            app.lightningVar.set('\n⚡')
+            app.lightningVar.set('\n⚡')'''
+            app.lightningVar.set('\n\n')
         pass
 
 class SpeedometerThread(threading.Thread):
@@ -264,12 +268,28 @@ class SpeedometerThread(threading.Thread):
                     break
 
     def speedometerUpdateLoop(self):
+        zero_count = 0
+        no_zero_count = 0
+        zero_timeout = 150
+        no_zero_timeout = 150
         while True:
             if time.time() - self.watchdog_time_since > 5:
                 self.speedometer.reset()
             speed = self.speedometer.getSpeed()
             self.app.speedVar.set('{0:.0f}'.format(speed) + "\nkm/hr")
-            if self.app.threadingEvent.wait(timeout=1/2000):
+            if speed == 0:
+                zero_count += 1 if zero_count != zero_timeout else 0
+            else:
+                no_zero_count += 1 if no_zero_count != no_zero_timeout else 0
+            if speed <= 0 and zero_count >= zero_timeout and no_zero_count != 0:
+                no_zero_count = 0
+                self.app.switchFrameOn(0)
+                zero_count = zero_timeout
+            elif speed > 0 and no_zero_count >= no_zero_timeout and zero_count != 0:
+                zero_count = 0
+                self.app.switchFrameOn(1)
+                no_zero_count = no_zero_timeout
+            if self.app.threadingEvent.wait(timeout=1/1000):
                break;
                 
 
@@ -296,11 +316,11 @@ class BatteryVoltageThread(threading.Thread):
                 #print(raw)
                 splitted = raw.split(';')
                 batOneVol = float(splitted[0])
-                batTwoVol = float(splitted[1])
-                finalString = 'Battery Pack 1 {0:02d}% {1:02d}V\nBattery Pack 2 {2:02d}% {3:02d}V'\
-                              .format(int(batOneVol*100/48), int(batOneVol), int(batTwoVol*100/48), int(batTwoVol))
+                finalString = 'Battery Pack 1 {0:02d}% {1:02d}V'\
+                              .format(int(batOneVol*100/48), int(batOneVol))
                 batVar.set(finalString)
-            except:
+            except Exception as e:
+                print(e)
                 pass
             if self.app.threadingEvent.wait(timeout=200/1000):
                 break
