@@ -21,6 +21,5 @@ def readBatteryInformation():
         
         return arduino_serial.readline()
     except:
-        print('Cannot read Serial println')
         return (str(float(random.randint(0, 48)))+';0.00').encode()
 

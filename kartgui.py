@@ -12,7 +12,6 @@ class Application(ttk.Frame):
     
     @classmethod
     def main(cls):
-        NoDefaultRoot()
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         root = Tk()
@@ -62,7 +61,7 @@ class Application(ttk.Frame):
         self.statusVar = StringVar(self, value="OFF")
         self.onoff = StringVar(self, value="ON")
         self.speedVar = StringVar(self, value="0\nmph")
-        self.batteryInfoVar = StringVar(self, value = 'Battery Pack {0} {1}% {2}V ⚡')
+        self.batteryInfoVar = StringVar(self, value = 'Battery Pack {0}\n{1}% {2}V ⚡')
         self.lightningVar = StringVar(self, value = '\n\n')
         self.kart = Kart()
         
@@ -152,6 +151,7 @@ class Kart:
                                                             app.neutral.invoke()\
                                                           ))
     def off(self, app):
+        self.switch_battery(app)
         app.statusVar.set("Turning off. . .")
         Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton, app.gasChange)
         app.root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.gasChange), \
@@ -248,7 +248,10 @@ class SpeedometerThread(threading.Thread):
         
     def run(self):
         #self.demo()
-        self.speedometerUpdateLoop()
+        try:
+            self.speedometerUpdateLoop()
+        except:
+            pass
         print(self.name + " thread exited gracefully!")
 
     def demo(self):
@@ -316,12 +319,12 @@ class BatteryVoltageThread(threading.Thread):
                 #print(raw)
                 splitted = raw.split(';')
                 batOneVol = float(splitted[0])
-                finalString = 'Battery Pack 1 {0:02d}% {1:02d}V'\
+                finalString = 'Battery Pack 1\n{0:02d}% {1:02d}V'\
                               .format(int(batOneVol*100/48), int(batOneVol))
                 batVar.set(finalString)
             except Exception as e:
                 print(e)
-                pass
+                break
             if self.app.threadingEvent.wait(timeout=200/1000):
                 break
             
