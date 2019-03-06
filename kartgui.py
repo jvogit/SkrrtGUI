@@ -46,7 +46,6 @@ class Application(ttk.Frame):
         self.batteryVoltageThread.start()
         
     def switchFrame(self):
-        
         if(self.frameOn == 0):
             self.switchFrameOn(1)
         else:
@@ -70,7 +69,6 @@ class Application(ttk.Frame):
         self.root.attributes("-fullscreen", self.fullscreen)
 
     def create_threads(self):
-        self.threadingEvent = threading.Event()
         self.speedometerThread = SpeedometerThread(self)
         self.batteryVoltageThread = BatteryVoltageThread(self)
     
@@ -113,9 +111,10 @@ class Application(ttk.Frame):
 
     def on_closing(self):
         print("Application terminated")
+        self.speedometerThread.event.set()
+        self.batteryVoltageThread.event.set()
         self.kart.off(self)
         self.root.destroy()
-        self.threadingEvent.set()
         GPIO.cleanup()
 
     @staticmethod
@@ -245,6 +244,7 @@ class SpeedometerThread(threading.Thread):
         self.counter = 0;
         self.speedometer = Speedometer(self, math.pi*25)
         self.speedometer.setup()
+        self.event = threading.Event()
         
     def run(self):
         #self.demo()
@@ -292,7 +292,7 @@ class SpeedometerThread(threading.Thread):
                 zero_count = 0
                 self.app.switchFrameOn(1)
                 no_zero_count = no_zero_timeout
-            if self.app.threadingEvent.wait(timeout=1/1000):
+            if self.event.wait(timeout=1/1000):
                break;
                 
 
@@ -305,6 +305,7 @@ class BatteryVoltageThread(threading.Thread):
         threading.Thread.__init__(self)
         self.app = app
         self.name = "BatteryVoltage"
+        self.event = threading.Event()
 
     def run(self):
         self.batteryVoltageUpdateLoop()
@@ -325,7 +326,7 @@ class BatteryVoltageThread(threading.Thread):
             except Exception as e:
                 print(e)
                 break
-            if self.app.threadingEvent.wait(timeout=200/1000):
+            if self.event.wait(timeout=200/1000):
                 break
             
 
