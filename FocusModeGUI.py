@@ -17,7 +17,7 @@ class FocusModeGUI(ttk.Frame):
         self.cInd = Label(self, width=3, height=5, textvariable=self.app.lightningVar)
         self.revert = Button(self, width=30, height=8, relief='flat', text='', command=self.app.switchFrame)
         self.left_revert = Button(self, width=30, height=8, relief='flat', text='', command=self.app.switchFrame)
-        self.speed = Label(self, font=('Courier', 60), width=3, height=2, textvariable=self.app.speedVar)
+        self.speed = Label(self, font=('Courier', 60), width=3, height=1, textvariable=self.app.speedVar)
         self.placeholder1 = Button(self, width=30, height=8, relief='flat', state=DISABLED)
         self.placeholder2 = Button(self, width=30, height=8, relief='flat', state=DISABLED)
         self.placeholder3 = Button(self, width=30, height=8, relief='flat', state=DISABLED)

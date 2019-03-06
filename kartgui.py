@@ -278,7 +278,7 @@ class SpeedometerThread(threading.Thread):
             if time.time() - self.watchdog_time_since > 5:
                 self.speedometer.reset()
             speed = self.speedometer.getSpeed()
-            self.app.speedVar.set('{0:.0f}'.format(speed) + "\nkm/hr")
+            self.app.speedVar.set('{0:.0f}'.format(Util.convert_km(speed)) + "\nmi/hr")
             if speed == 0:
                 zero_count += 1 if zero_count != zero_timeout else 0
             else:
@@ -335,6 +335,10 @@ class Util:
     def batch_execute_func(*funcs):
         for f in funcs:
             f
+
+    @staticmethod
+    def convert_km(km):
+        return km * 0.621
 
 if __name__ == '__main__':
     Application.main()
