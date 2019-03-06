@@ -209,7 +209,7 @@ class Kart:
 
     def reverse_pin_seq(self):
         self.neutral_pin_seq()
-        time.sleep(1)
+        time.sleep(2)
         print('Pin REVERSE')
         GPIO.output(35, GPIO.HIGH)
 
@@ -222,7 +222,6 @@ class Kart:
         self.bat_one = not self.bat_one
         if self.bat_one:
             print('HIGH')
-            serial.arduino_serial.write('a'.encode())
             time.sleep(1)
             app.lightningVar.set('⚡\n')
         else:
