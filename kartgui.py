@@ -142,6 +142,7 @@ class Kart:
         self.reverseBool = False;
     
     def on(self, app):
+        self.switch_battery(app, False)
         app.statusVar.set("Turning on . . .")
         root = app.root
         Application.disableButton(app.onButton, app.gasChange)
@@ -150,7 +151,6 @@ class Kart:
                                                             app.neutral.invoke()\
                                                           ))
     def off(self, app):
-        self.switch_battery(app)
         app.statusVar.set("Turning off. . .")
         Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton, app.gasChange)
         app.root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.gasChange), \
@@ -176,12 +176,8 @@ class Kart:
                                                               self.reverse_pin_seq()))
         
     def gas(self, app):
-        Application.disableButton(app.gasChange)
-        app.onoff.set('OFF')
-        app.onButton.invoke()
-        app.root.after(1, lambda : Util.batch_execute_func(Application.disableButton(app.onButton, app.gasChange)))
-        app.root.after(self.SAFETY_OFF_DELAY * 1000, lambda : Util.batch_execute_func(Application.enableButton(app.gasChange, app.onButton),
-                                                              print('Gas now changeg!')))
+        Application.disableButton(app.gasChange, app.onButton)
+        app.root.after(1, lambda : Util.batch_execute_func(app.onoff.set('ON'), self.off(app), Application.disableButton(app.gasChange, app.onButton), self.switch_battery(app)))
 
     def on_pin_seq(self):
         self.off_pin_seq()
@@ -218,8 +214,8 @@ class Kart:
         print('Pin GAS')
         pass
 
-    def switch_battery(self, app):
-        self.bat_one = not self.bat_one
+    def switch_battery(self, app, val = None):
+        self.bat_one = not self.bat_one if val is None else val
         if self.bat_one:
             print('HIGH')
             time.sleep(1)
@@ -275,7 +271,7 @@ class SpeedometerThread(threading.Thread):
         zero_timeout = 150
         no_zero_timeout = 150
         while True:
-            if time.time() - self.watchdog_time_since > 5:
+            if time.time() - self.watchdog_time_since > 2:
                 self.speedometer.reset()
             speed = self.speedometer.getSpeed()
             self.app.speedVar.set('{0:.0f}'.format(Util.convert_km(speed)) + "\nmi/hr")
@@ -314,18 +310,22 @@ class BatteryVoltageThread(threading.Thread):
     def batteryVoltageUpdateLoop(self):
         batVar = self.app.batteryInfoVar
         while True:
+            batOneVol = 0.00 
             try:
+                serial.arduino_serial.reset_output_buffer()
+                if self.event.wait(timeout=1/2):
+                    break
                 raw = serial.readBatteryInformation().decode('utf-8')
                 #print(raw)
                 splitted = raw.split(';')
                 batOneVol = float(splitted[0])
-                finalString = 'Battery Pack 1\n{0:02d}% {1:02d}V'\
-                              .format(int(batOneVol*100/48), int(batOneVol))
-                batVar.set(finalString)
             except Exception as e:
                 print(e)
-                break
-            if self.event.wait(timeout=200/1000):
+                #break
+            finalString = 'Battery Pack 1\n{0:02d}% {1:02d}V'\
+                            .format(int(batOneVol*100/48), int(batOneVol))
+            batVar.set(finalString)
+            if self.event.wait(timeout=1/1000):
                 break
             
 

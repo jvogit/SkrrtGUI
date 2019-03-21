@@ -16,10 +16,9 @@ def readBatteryInformation():
     global arduino_serial
     try:
         if(arduino_serial is None):
-            return '0.00;0.00'.encode()
-        arduino_serial.flushOutput()
-        
+            return 'error'.encode()
         return arduino_serial.readline()
-    except:
-        return (str(float(random.randint(0, 48)))+';0.00').encode()
+    except Exception as e:
+        print(e)
+        return 'error'.encode()
 

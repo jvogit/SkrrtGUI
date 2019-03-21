@@ -15,7 +15,8 @@ class Speedometer:
     def setup(self):
         GPIO.setup(self.pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.add_event_detect(self.pin, GPIO.FALLING, callback = self.calc_speed, bouncetime=20)
-        
+
+    #km
     def calc_speed(self, val):
         self.watchdogThread.notifyWatchdog()
         if(self.start_time == 0):
