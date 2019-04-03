@@ -312,9 +312,9 @@ class BatteryVoltageThread(threading.Thread):
         while True:
             batOneVol = 0.00 
             try:
-                serial.arduino_serial.reset_output_buffer()
+                '''serial.arduino_serial.reset_output_buffer()
                 if self.event.wait(timeout=1/2):
-                    break
+                    break'''
                 raw = serial.readBatteryInformation().decode('utf-8')
                 #print(raw)
                 splitted = raw.split(';')
