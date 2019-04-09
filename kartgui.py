@@ -128,7 +128,14 @@ class Application(ttk.Frame):
             button.config(state=NORMAL)
 
 class Kart:
-
+    """
+    gpio pins 36-40 even, 29-37 odd
+    29 - power/keyswitch
+    31 - enable
+    35 - reverse
+    37 - forward
+    40 - hall
+    """
     pins = [29, 31, 35, 37, 11, 13]
     DEFAULT_PIN_DELAY = 0.05
     FULL_OFF_DELAY = int(len(pins) * 0.05) + 1
@@ -137,6 +144,7 @@ class Kart:
     
     def __init__(self):
         GPIO.setup(self.pins, GPIO.OUT)
+        GPIO.setup([38, 40], GPIO.OUT)
         self.forwardBool = False;
         self.neutralBool = False;
         self.reverseBool = False;
@@ -177,7 +185,7 @@ class Kart:
         
     def gas(self, app):
         Application.disableButton(app.gasChange, app.onButton)
-        app.root.after(1, lambda : Util.batch_execute_func(app.onoff.set('ON'), self.off(app), Application.disableButton(app.gasChange, app.onButton), self.switch_battery(app)))
+        app.root.after(1, lambda : Util.batch_execute_func(app.onoff.set('ON'), self.off(app), Application.disableButton(app.gasChange, app.onButton), self.switch_battery(app, True)))
 
     def on_pin_seq(self):
         self.off_pin_seq()
@@ -205,7 +213,7 @@ class Kart:
 
     def reverse_pin_seq(self):
         self.neutral_pin_seq()
-        time.sleep(2)
+        time.sleep(1)
         print('Pin REVERSE')
         GPIO.output(35, GPIO.HIGH)
 
@@ -220,13 +228,23 @@ class Kart:
             print('HIGH')
             time.sleep(1)
             app.lightningVar.set('⚡\n')
+            self.charge_pin_seq(True)
         else:
             '''print('LOW')
             serial.arduino_serial.write('a'.encode())
             time.sleep(1)
             app.lightningVar.set('\n⚡')'''
             app.lightningVar.set('\n\n')
+            self.charge_pin_seq(False)
         pass
+
+    def charge_pin_seq(self, on=False):
+        if on is True:
+            GPIO.output(38, GPIO.HIGH)
+            GPIO.output(40, GPIO.HIGH)
+        else:
+            GPIO.output(38, GPIO.LOW)
+            GPIO.output(40, GPIO.LOW)
 
 class SpeedometerThread(threading.Thread):
 
