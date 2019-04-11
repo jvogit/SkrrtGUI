@@ -10,6 +10,9 @@ class ControlException(Exception):
 
 
 class Control():
+
+    exit_flag = False
+    
     def __init__(self, username, password, *passthru):
         try:
             self.last_checked = -1
@@ -26,7 +29,13 @@ class Control():
                 self.last_checked = uidlist[0].split()[-1]
             except IndexError:
                 pass
+            
+        except imaplib.IMAP4.error:
+            print("Your username and password is incorrect")
+            print("Or IMAP is not enabled.")
 
+    def start(self):
+        try:
             self.load()
             self.handle()
         except imaplib.IMAP4.error:
@@ -75,7 +84,7 @@ class Control():
         result, data = self.mail.fetch(latest_email_id, "(RFC822)")
         voice_command = email.message_from_string(data[0][1].decode('utf-8'), policy=policy.default)
         return str(voice_command.get_content()).lower().strip()
-
+    
     def handle(self):
         """Handle new commands
 
@@ -85,6 +94,8 @@ class Control():
         print("\n")
 
         while True:
+            if self.exit_flag:
+                break
             try:
                 command = self.fetch_command()
                 if not command:
@@ -115,6 +126,7 @@ class Control():
                     **locals()))
                 print("Restarting...")
             time.sleep(1)
+        print('Broken')
 
 
 if __name__ == '__main__':

@@ -40,4 +40,8 @@ class SiriListenThread(threading.Thread):
         
     def run(self):
         config = self.kartmodule.loaded
-        Control(config["email"], config["password"], self.kartmodule)
+        self.control = Control(config["email"], config["password"], self.kartmodule)
+        self.control.start()
+
+    def stop(self):
+        self.control.exit_flag = True

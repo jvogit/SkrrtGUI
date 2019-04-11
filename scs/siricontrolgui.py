@@ -30,10 +30,12 @@ class Application(Frame):
         print("Initialize Application")
         #Set up applicatiom variables, create widgets, grid widgets onto main frame
         self.root = root
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.audioplayer = AudioPlayer()
         self.create_widgets()
         self.grid_widgets()
-        SiriListenThread(KartSiriControlModule(self)).start()
+        self.thread = SiriListenThread(KartSiriControlModule(self))
+        self.thread.start()
     
     def create_widgets(self):
         self.textVar = StringVar(self, value='Oh boy')
@@ -59,6 +61,12 @@ class Application(Frame):
     def play_song(self, to):
         print('trying to  loop up : ' + to)
         self.audioplayer.LookUpAndPlay(to, False, self.tts)
+
+    def on_closing(self):
+        print('Closed')
+        self.thread.stop()
+        self.audioplayer.stop()
+        self.root.destroy()
 
     def tts(self, tosay):
         encoded = hashlib.sha224(tosay.encode()).hexdigest()
