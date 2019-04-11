@@ -1,8 +1,10 @@
 from siricontrol import Control
 from gtts import gTTS
 from audioplayer import AudioPlayer
+from pathlib import Path
 import threading
 import json
+import hashlib
 
 class KartSiriControlModule():
     def __init__(self, kartapp):

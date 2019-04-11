@@ -39,7 +39,7 @@ class AudioPlayer():
         if self.p is not None:
             self.p.pause()
 
-    def LookUpAndPlay(self, url, video=False):
+    def LookUpAndPlay(self, url, video=False, tts=None):
         print('Looking up ' + url)
         command=['youtube-dl', 'ytsearch:'+url, '-g', '-e']
         startupinfo = subprocess.STARTUPINFO()
@@ -50,3 +50,5 @@ class AudioPlayer():
         if video:
             self.PlayVideo(result[1], True)
         self.PlayAudio(result[2])
+        if tts is not None:
+            tts(self, 'Now playing: ' + result[0])

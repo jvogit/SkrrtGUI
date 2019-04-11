@@ -13,6 +13,8 @@ def execute(command, args):
     print(commands)
     
     if("on" in commands):
-        print('Turn kart on!')
+        print("Turn kart on!")
+    if("off" in commands):
+        print("Turn kart off!")
     
     return
