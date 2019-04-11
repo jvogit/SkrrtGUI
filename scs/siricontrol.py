@@ -5,23 +5,12 @@ from email import policy
 import os
 import pkgutil
 
-##########################################
-
-# Add your gmail username and password here
-
-username = input("prompt")
-password = input("prompt")
-
-##########################################
-
-
 class ControlException(Exception):
     pass
 
 
 class Control():
-    def __init__(self, *passthru):
-        global username, password
+    def __init__(self, username, password, *passthru):
         try:
             self.last_checked = -1
             self.mail = imaplib.IMAP4_SSL("imap.gmail.com", 993)

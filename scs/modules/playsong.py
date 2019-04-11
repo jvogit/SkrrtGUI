@@ -10,8 +10,7 @@ def execute(command, args):
     #Write anything you want to be executed when the commandWords are heard
     #The 'command' parameter is the command you speak
     comm = command.split('play', 1)
-    gui = args[0]
-    print(comm)
+    kartmodule = args[0]
     print(command)
-    gui.play_song(comm[1] + " song")
+    kartmodule.audioplayer.LookUpAndPlay(comm[1] + " song")
     return

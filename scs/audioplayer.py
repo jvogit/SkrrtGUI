@@ -1,7 +1,7 @@
 import vlc
 import time
 import subprocess
-video_path="sample.mp4"
+
 class AudioPlayer():
     def __init__(self):
         self.p = None
@@ -39,7 +39,8 @@ class AudioPlayer():
         if self.p is not None:
             self.p.pause()
 
-    def LookUpAndPlay(self, url, video=False, tts=None):
+    def LookUpAndPlay(self, url, video=False):
+        print('Looking up ' + url)
         command=['youtube-dl', 'ytsearch:'+url, '-g', '-e']
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -49,5 +50,3 @@ class AudioPlayer():
         if video:
             self.PlayVideo(result[1], True)
         self.PlayAudio(result[2])
-        if tts is not None:
-            tts('Now playing:' + result[0])

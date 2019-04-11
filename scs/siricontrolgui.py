@@ -1,6 +1,7 @@
 from tkinter import *
 import threading
 from siricontrol import Control
+from KartSiriControlModule import *
 from PIL import Image, ImageTk
 from pathlib import Path
 from audioplayer import AudioPlayer
@@ -32,7 +33,7 @@ class Application(Frame):
         self.audioplayer = AudioPlayer()
         self.create_widgets()
         self.grid_widgets()
-        SiriListenThread(self).start()
+        SiriListenThread(KartSiriControlModule(self)).start()
     
     def create_widgets(self):
         self.textVar = StringVar(self, value='Oh boy')
@@ -69,13 +70,6 @@ class Application(Frame):
             gTTS(tosay, lang='en').save("tts/"+encoded + ".mp3")
         self.audioplayer.inde_play("tts/"+encoded+".mp3")
 
-class SiriListenThread(threading.Thread):
-    def __init__(self, gui):
-        super().__init__()
-        self.gui = gui
-
-    def run(self):
-        Control(self.gui)
 #Allows start
 if __name__ == "__main__":
     '''print(gtts.lang.tts_langs())
