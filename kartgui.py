@@ -155,7 +155,8 @@ class Kart:
         root = app.root
         Application.disableButton(app.onButton, app.gasChange)
         root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.neutral, app.onButton, app.gasChange), \
-                                                            app.statusVar.set("On"), \
+                                                            app.statusVar.set("ON"), \
+                                                            app.onoff.set("OFF"),\
                                                             app.neutral.invoke()\
                                                           ))
     def off(self, app):
@@ -163,6 +164,7 @@ class Kart:
         Application.disableButton(app.forward, app.neutral, app.reverse, app.onButton, app.gasChange)
         app.root.after(1, lambda : Util.batch_execute_func(Application.enableButton(app.onButton, app.gasChange), \
                                                               app.statusVar.set("OFF"), \
+                                                              app.onoff.set("ON"),\
                                                               self.off_pin_seq()))
 
     def forward(self, app):
