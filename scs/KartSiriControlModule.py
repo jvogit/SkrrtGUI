@@ -4,7 +4,6 @@ try:
 except:
     from siricontrol import Control
     from audioplayer import AudioPlayer
-from gtts import gTTS
 from pathlib import Path
 import threading
 import json
@@ -18,7 +17,7 @@ class KartSiriControlModule():
         self.audioplayer = AudioPlayer()
         
     def load_config(self):
-        default_config = json.dumps({"email": "", "password": ""},
+        default_config = json.dumps({"email": "", "password": "", "tts":False},
                             indent=4, sort_keys=True)
         try:
             config = open(os.path.join(os.path.dirname(__file__), "config.txt"), "r")
@@ -31,6 +30,7 @@ class KartSiriControlModule():
         
     @staticmethod
     def tts(audioplayer, tosay):
+        from gtts import gTTS
         encoded = hashlib.sha224(tosay.encode()).hexdigest()
         root_path = os.path.join(os.path.dirname(__file__), "tts")
         dire = Path(root_path)
