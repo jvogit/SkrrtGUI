@@ -14,7 +14,9 @@ def execute(command, args):
     
     if("on" in commands):
         print("Turn kart on!")
+        app.kart.on(app)
     if("off" in commands):
         print("Turn kart off!")
+        app.kart.off(app)
     
     return
