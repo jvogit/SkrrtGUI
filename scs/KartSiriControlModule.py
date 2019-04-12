@@ -34,12 +34,12 @@ class KartSiriControlModule():
         encoded = hashlib.sha224(tosay.encode()).hexdigest()
         root_path = os.path.join(os.path.dirname(__file__), "tts")
         dire = Path(root_path)
-        file = Path(root_path + "/tts/"+encoded + ".mp3")
+        file = Path(root_path + encoded + ".mp3")
         if not dire.exists():
             dire.mkdir()
         if not file.is_file():
-            gTTS(tosay, lang='en').save(root_path + "/tts/"+encoded + ".mp3")
-        audioplayer.inde_play(root_path+"/tts/"+encoded+".mp3")
+            gTTS(tosay, lang='en').save(root_path + "/"+encoded + ".mp3")
+        audioplayer.inde_play(root_path+"/"+encoded+".mp3")
         
 class SiriListenThread(threading.Thread):
     exit_flag = False
