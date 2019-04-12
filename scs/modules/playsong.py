@@ -12,5 +12,5 @@ def execute(command, args):
     comm = command.split('play', 1)
     kartmodule = args[0]
     print(command)
-    kartmodule.audioplayer.LookUpAndPlay(comm[1] + " song")
+    kartmodule.audioplayer.LookUpAndPlay(comm[1] + " song", tts=kartmodule.tts)
     return

@@ -6,12 +6,28 @@ from FocusModeGUI import FocusModeGUI
 import threading
 import time
 import math
+import json
+import os
 import RPi.GPIO as GPIO
 import KartSerialConnector as serial
+
 class Application(ttk.Frame):
     
     @classmethod
     def main(cls):
+        def load_config():
+            default_config = json.dumps({"sirisys":False},
+                            indent=4, sort_keys=True)
+            try:
+                config = open(os.path.join(os.path.dirname(__file__), "config.txt"), "r")
+            except OSError:
+                config = open(os.path.join(os.path.dirname(__file__), "config.txt"), "w+")
+                config.write(default_config)
+            config.seek(0)
+            loaded = json.loads(config.read())
+            config.close()
+            return loaded
+        loaded = load_config()
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         root = Tk()
@@ -19,7 +35,7 @@ class Application(ttk.Frame):
         root.resizable(True, True)
         container = ttk.Frame(root)
         container.grid(column=1, row=1)
-        app = cls(root, container)
+        app = cls(root, container, loaded)
         frames = [app, FocusModeGUI(root, container, app)]
         frames[0].grid(column=1,row=1)
         frames[1].grid(column=1,row=1)
@@ -32,10 +48,11 @@ class Application(ttk.Frame):
         root.protocol("WM_DELETE_WINDOW", app.on_closing)
         root.mainloop()
     
-    def __init__(self, root, parent, **args):
+    def __init__(self, root, parent, config, **args):
         super().__init__(parent, **args)
         print("Initialized application")
         self.root = root
+        self.config = config
         self.frames = []
         self.frameOn = 0
         self.create_variables()
@@ -68,9 +85,23 @@ class Application(ttk.Frame):
         self.fullscreen = not self.fullscreen
         self.root.attributes("-fullscreen", self.fullscreen)
 
+    def init_siri_sys(self):
+        if(not self.config["sirisys"]):
+            return
+        try:
+            import scs.KartSiriControlModule as kscm
+        except Exception as e:
+            print(e)
+            return
+        self.kartSiri = kscm.KartSiriControlModule(self)
+        self.siriThread = kscm.SiriListenThread(self.kartSiri)
+        self.siriThread.start()
+        
+    
     def create_threads(self):
         self.speedometerThread = SpeedometerThread(self)
         self.batteryVoltageThread = BatteryVoltageThread(self)
+        self.init_siri_sys()
     
     def create_widgets(self):
         self.onButton = Button(self, textvariable=self.onoff, height=24, width=30, command=self.prompt)
@@ -111,9 +142,14 @@ class Application(ttk.Frame):
 
     def on_closing(self):
         print("Application terminated")
-        self.speedometerThread.event.set()
-        self.batteryVoltageThread.event.set()
-        self.kart.off(self)
+        try:
+            self.kart.off(self)
+            self.speedometerThread.event.set()
+            self.batteryVoltageThread.event.set()
+            self.siriThread.stop()
+        except Exception as e:
+            print(e)
+            pass
         self.root.destroy()
         GPIO.cleanup()
 

@@ -12,6 +12,7 @@ class ControlException(Exception):
 class Control():
 
     exit_flag = False
+    logged_in = False
     
     def __init__(self, username, password, *passthru):
         try:
@@ -29,12 +30,14 @@ class Control():
                 self.last_checked = uidlist[0].split()[-1]
             except IndexError:
                 pass
-            
+            self.logged_in = True
         except imaplib.IMAP4.error:
             print("Your username and password is incorrect")
             print("Or IMAP is not enabled.")
 
     def start(self):
+        if not self.logged_in:
+            return
         try:
             self.load()
             self.handle()
