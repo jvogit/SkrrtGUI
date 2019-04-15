@@ -2,12 +2,10 @@ from tkinter import *
 import threading
 from siricontrol import Control
 from KartSiriControlModule import *
-from PIL import Image, ImageTk
+#from PIL import Image, ImageTk
 from pathlib import Path
 from audioplayer import AudioPlayer
 import time
-import gtts
-from gtts import gTTS
 import hashlib
 #Application class
 class Application(Frame):
