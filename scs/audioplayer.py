@@ -42,9 +42,7 @@ class AudioPlayer():
     def LookUpAndPlay(self, url, video=False, tts=None):
         print('Looking up ' + url)
         command=['youtube-dl', 'ytsearch:'+url, '-g', '-e']
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        result=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True, startupinfo=startupinfo).stdout.split('\n')
+        result=self.linux(command)
         print(str(result))
         self.pause()
         if video:
@@ -52,3 +50,11 @@ class AudioPlayer():
         self.PlayAudio(result[2])
         if tts is not None:
             tts(self, 'Now playing: ' + result[0])
+
+    def linux(self, command):
+        return subprocess.check_output(command, universal_newlines=True).split('\n')
+    def windows(self, command):
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        result=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True).stdout.split('\n')
+        
