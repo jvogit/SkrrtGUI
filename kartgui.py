@@ -86,14 +86,14 @@ class Application(ttk.Frame):
         self.root.attributes("-fullscreen", self.fullscreen)
 
     def init_siri_sys(self):
-        if(not self.config["sirisys"]):
-            return
         try:
             import scs.KartSiriControlModule as kscm
         except Exception as e:
             print(e)
             return
         self.kartSiri = kscm.KartSiriControlModule(self)
+        if(not self.config["sirisys"]):
+            return
         self.siriThread = kscm.SiriListenThread(self.kartSiri)
         self.siriThread.start()
         

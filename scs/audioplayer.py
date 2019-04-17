@@ -25,7 +25,9 @@ class AudioPlayer():
                 if self.a.is_playing():
                     break
     def inde_play(self, path):
+        player = vlc.MediaPlayer(path)
         vlc.MediaPlayer(path).play()
+        return player
         
     def stop(self):
         if self.a is not None:
