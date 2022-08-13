@@ -1,6 +1,5 @@
-RPi
-serial
 __pycache__
 scs/tts
 scs/config.txt
-config.txt
+venv/
+.vscode/
